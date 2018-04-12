@@ -1,45 +1,28 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-// main app
-//import App from './components/app';
-import {UploadFile} from './components/app';
 
-//ReactDOM.render(<App />, document.getElementById('app'))
-ReactDOM.render(<UploadFile onClick={uploadFileHandler}/>, document.getElementById('app'));
+import {ReportSelection} from './components/app';
+import api from './dhis2API';
 
+window.onload = function(){
 
-function uploadFileHandler(){
-
-    var file = document.getElementById('fileInput').files[0];
-
-    if (!file) {
-        alert("Error Cannot find the file!");
-        return;
-    }
-
+    var dsService = new api.dataStoreService('XLReports');
+    var ouService = new api.organisationUnitService();
     
-    switch(file.type){
-    case "text/csv" :  parseCSV(file);
-        break
-    case "image/jpeg" :
-    case "image/png" :    renderImage(file);
+    var Preports = dsService.getAllKeyValues();
+    var PouGroups = ouService.getOUGroups("id,name");
 
+    Promise.all([Preports,PouGroups]).then(function(values){
         
-        break;
-    default : alert("Unsupported Format");
-        break
-    }
-    
-} 
+        ReactDOM.render(<ReportSelection data ={
+            {
+                reports : values[0],
+                ouGroups : values[1]
+            }
+        } />, document.getElementById('form'));
 
-function renderImage(file){
+    })
 
-    var reader = new FileReader();
-
-    reader.onload = function(e) {
-        document.getElementById('form').src=e.target.result;
-    }
-    
-    reader.readAsDataURL(file);       
 }
+
