@@ -4,7 +4,6 @@ export function ReportSelection(props){
 
     var instance = Object.create(React.Component.prototype);
     instance.props = props;
-    instance.render = render;
 
     var keyToPeriodTypeMap = props.data.reports.reduce((map,obj) =>{
         map[obj.key] = obj;
@@ -20,7 +19,8 @@ export function ReportSelection(props){
         
     };
     
-    
+    instance.render = render;
+
     return instance;
     
     function handleSubmit(e){
@@ -57,43 +57,56 @@ export function ReportSelection(props){
 
                 var periods = [];
                 var MONTH_NAMES=new Array('January','February','March','April','May','June','July','August','September','October','November','December');
+                var MONTH_NAMES_SHORT=new Array('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec');
+
 
                 var today = new Date();
                 var currentYear = today.getFullYear();
                 var currentMonth = today.getMonth();
-                debugger
+                
                 for (var i=currentYear;i>=1990;i--){
-
-                    while(currentMonth!=0){
+                    while(currentMonth!=-1){
                         var monthStr = ""
-                        if (currentMonth <10){
+                        var cm = currentMonth+1;
+                        if (cm <10){
                             monthStr = "0";
                         }
                         periods.push(
                             {
-                                id:currentYear+monthStr+currentMonth,
-                                name : MONTH_NAMES[currentMonth]+currentYear
+                                id:i+monthStr+cm,
+                                name : MONTH_NAMES_SHORT[currentMonth]+" "+i
 
                             }
                         );
 
-                        currentMonth = (currentMonth+1)%12;
+                        currentMonth = (currentMonth-1);
                     }
+                    currentMonth=11;
                 }
                    
                 return periods;
             }
         };
-        getPeriods(keyToPeriodTypeMap[e.target.selectedOptions[0].value].period)
+        var periodList = getPeriods(keyToPeriodTypeMap[e.target.selectedOptions[0].value].period);
+        state.periodList = periodList;
+        instance.setState(state)
     }
     
-    function getPeriodOptions(){
+    function getPeriodOptions(periodList){
 
+        var options = [];
+        
+        periodList.forEach(function(pe){
+            options.push(<option key = {pe.id}  value={pe.id} >{pe.name}</option>);
+        });
+        
+        return options;
         
     }
 
     
     function render(){
+debugger
         return (
                 < form onSubmit={handleSubmit}>
                 <table>
@@ -102,11 +115,11 @@ export function ReportSelection(props){
                 <td> Select Report </td><td><select onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select></td>   
                 </tr>
                 <tr>
-                <td> Select Start Period  </td><td><select id="report">{getPeriodOptions()}</select></td>
+                <td> Select Start Period  </td><td><select id="report">{getPeriodOptions(state.periodList)}</select></td>
                 </tr>
                 
                 <tr>
-                <td> Select End Period  </td><td><select id="report">{getPeriodOptions()}</select></td>
+                <td> Select End Period  </td><td><select id="report">{getPeriodOptions(state.periodList)}</select></td>
                 </tr>
                 
                 <tr>
