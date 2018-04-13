@@ -1,35 +1,52 @@
 import React,{propTypes} from 'react';
+import reportGenerator from '../report-generator';
 
 export function ReportSelection(props){
-
+   
     var instance = Object.create(React.Component.prototype);
     instance.props = props;
 
-    var keyToPeriodTypeMap = props.data.reports.reduce((map,obj) =>{
+    var keyToObjMap = props.data.reports.reduce((map,obj) =>{
         map[obj.key] = obj;
         return map;
     },{});
     
 
     var state = {
-        selectedReport : null,
-        selectedOUGroup : null,
-        selectedOU : null,
-        periodList : []
+        selectedReport : "-1",
+        reportList : [],
+        selectedOUGroup : "-1",
+        selectedOU : {},
+        periodList : [],
+        startPe : "-1",
+        endPe : "-1"
         
     };
+
+    state.reportList = props.data.reports;
+    props.services.ouSelectCallback.selected = function(ou){
+
+        state.selectedOU = ou;
+        instance.setState(state);
+    }
+                                   
     
     instance.render = render;
 
     return instance;
     
-    function handleSubmit(e){
+    function handleSubmit(event){
 
+        debugger
+        reportGenerator.getReport(Object.assign({},state));
+        
     }
 
     function getReportOptions(reports){
 
-        var options = [];
+        var options = [
+                <option disabled value="-1"> -- select a report -- </option>
+                      ];
         
         reports.forEach(function(report){
             options.push(<option key = {report.key}  value={report.key} >{report.name}</option>);
@@ -40,61 +57,19 @@ export function ReportSelection(props){
     }
 
     function onReportChange(e){
-
-        function getPeriods(periodType){
-
-            switch(periodType){
-            case "Monthly" :
-                debugger
-                return  getMonthlyPeriods();
-                default :
-                return  getMonthlyPeriods();
-                
-                
-            }
-
-            function getMonthlyPeriods(){
-
-                var periods = [];
-                var MONTH_NAMES=new Array('January','February','March','April','May','June','July','August','September','October','November','December');
-                var MONTH_NAMES_SHORT=new Array('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec');
-
-
-                var today = new Date();
-                var currentYear = today.getFullYear();
-                var currentMonth = today.getMonth();
-                
-                for (var i=currentYear;i>=1990;i--){
-                    while(currentMonth!=-1){
-                        var monthStr = ""
-                        var cm = currentMonth+1;
-                        if (cm <10){
-                            monthStr = "0";
-                        }
-                        periods.push(
-                            {
-                                id:i+monthStr+cm,
-                                name : MONTH_NAMES_SHORT[currentMonth]+" "+i
-
-                            }
-                        );
-
-                        currentMonth = (currentMonth-1);
-                    }
-                    currentMonth=11;
-                }
-                   
-                return periods;
-            }
-        };
-        var periodList = getPeriods(keyToPeriodTypeMap[e.target.selectedOptions[0].value].period);
+        var reportKey = e.target.selectedOptions[0].value;
+        
+        var periodList = props.services.peService.getPeriods(keyToObjMap[reportKey].period);
         state.periodList = periodList;
+        state.selectedReport = keyToObjMap[reportKey];
         instance.setState(state)
     }
     
     function getPeriodOptions(periodList){
 
-        var options = [];
+        var options = [
+                <option disabled value="-1"> -- select period -- </option>
+        ];
         
         periodList.forEach(function(pe){
             options.push(<option key = {pe.id}  value={pe.id} >{pe.name}</option>);
@@ -104,34 +79,52 @@ export function ReportSelection(props){
         
     }
 
+    function getOrgUnitGroupOptions(ougs){
+        var options = [
+                <option disabled value="-1"> -- select a facility group -- </option>
+];
+        
+        ougs.forEach(function(oug){
+            options.push(<option key = {oug.id}  value={oug.id} >{oug.name}</option>);
+        });
+        
+        return options;
+    }
     
     function render(){
-debugger
+
+        function onPeChange(type,e){
+
+            if (type == "startPe"){
+                state.startPe = e.target.value
+            }else if (type =="endPe"){
+                state.endPe = e.target.value
+            }
+            instance.setState(state);
+        }
+
+        function onOUGroupChange(e){
+
+            state.selectedOUGroup = e.target.value;
+            instance.setState(state);
+        }
+
+        
         return (
-                < form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit}>
                 <table>
                 <tbody>
                 <tr>
-                <td> Select Report </td><td><select onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select></td>   
-                </tr>
+                <td> Select Report </td><td><select value={state.selectedReport.key} onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select></td>
+                <td> Selected Facility  </td><td><label disabled>{state.selectedOU.name}</label></td>               </tr>
                 <tr>
-                <td> Select Start Period  </td><td><select id="report">{getPeriodOptions(state.periodList)}</select></td>
-                </tr>
-                
+                <td> Select Start Period  </td><td><select onChange = {onPeChange.bind(this,"startPe")} value = {state.startPe} id="startPe">{getPeriodOptions(state.periodList)}</select></td>
+
+                <td> Select End Period  </td><td><select onChange = {onPeChange.bind(this,"endPe")} value = {state.endPe} id="endPe">{getPeriodOptions(state.periodList)}</select></td>
+                </tr>              
                 <tr>
-                <td> Select End Period  </td><td><select id="report">{getPeriodOptions(state.periodList)}</select></td>
-                </tr>
-                
-                <tr>
-                <td> Selected Facility  </td><td><label disabled>{state.currentSelection}</label></td>
-                </tr>
-                
-                <tr>
-                <td> Select Org Unit Group  </td><td></td>
-                </tr>
-                
-                <tr>
-                <td> Select Aggregation Mode </td><td></td>
+                <td> Select Org Unit Group  </td><td><select value={state.selectedOUGroup} onChange = {onOUGroupChange} id="ouGroup">{getOrgUnitGroupOptions(props.data.ouGroups)}</select></td><td> Select Aggregation Mode </td><td></td>
+
                 </tr>
                 
                 </tbody>                

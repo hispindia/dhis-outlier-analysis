@@ -20,6 +20,58 @@ function  dhis2API(){
             })
         }
     }
+
+
+    this.periodService = function(){
+
+        this.getPeriods = function(periodType,startDate,endDate){
+
+            switch(periodType){
+            case "Monthly" :
+                debugger
+                return  getMonthlyPeriods();
+                default :
+                return  getMonthlyPeriods();
+                
+                
+            }
+
+            function getMonthlyPeriods(){
+
+                var periods = [];
+                var MONTH_NAMES=new Array('January','February','March','April','May','June','July','August','September','October','November','December');
+                var MONTH_NAMES_SHORT=new Array('Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec');
+
+
+                var today = new Date();
+                var currentYear = today.getFullYear();
+                var currentMonth = today.getMonth();
+                
+                for (var i=currentYear;i>=1990;i--){
+                    while(currentMonth!=-1){
+                        var monthStr = ""
+                        var cm = currentMonth+1;
+                        if (cm <10){
+                            monthStr = "0";
+                        }
+                        periods.push(
+                            {
+                                id:i+monthStr+cm,
+                                name : MONTH_NAMES_SHORT[currentMonth]+" "+i
+
+                            }
+                        );
+
+                        currentMonth = (currentMonth-1);
+                    }
+                    currentMonth=11;
+                }
+                
+                return periods;
+            }
+        }
+    }
+
     
     this.dataStoreService = function(dataStoreName){
 
