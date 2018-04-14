@@ -21,6 +21,15 @@ function  dhis2API(){
         }
     }
 
+    this.sqlViewService = function(){
+
+        this.createSQLView = function(sqlViewObj,callback){
+
+            
+            
+
+        }
+    }
 
     this.periodService = function(){
 
