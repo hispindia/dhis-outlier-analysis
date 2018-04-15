@@ -9,13 +9,12 @@ function  dhis2API(){
 
         this.getOUGroups = function(fields,filters){
             return new Promise((resolve,reject) => {
-                ajax.get("organisationUnitGroups?paging=false&fields="+fields+"&filters="+filters,function(error,reponse,body){
+                ajax.get("organisationUnitGroups?paging=false&fields="+fields+"&filters="+filters,function(error,response,body){
                     if(!error){
                         resolve(body)
                     }else{
                         reject(error)
                     }
-                    
                 })
             })
         }
@@ -23,10 +22,19 @@ function  dhis2API(){
 
     this.sqlViewService = function(){
 
-        this.createSQLView = function(sqlViewObj,callback){
+        this.getData = function(uid,callback){
+            ajax.get("sqlViews/"+uid+"/data",callback);
 
+        }
+        
+        this.create = function(sqlViewObj,callback){
+
+            ajax.post("sqlViews?",JSON.stringify(sqlViewObj),callback);
             
-            
+        }
+
+        this.remove = function(uid,callback){
+            ajax.remove("sqlViews/"+uid,callback);
 
         }
     }

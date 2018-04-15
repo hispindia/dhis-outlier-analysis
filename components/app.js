@@ -37,8 +37,9 @@ export function ReportSelection(props){
     
     function handleSubmit(event){
 
-        debugger
-        reportGenerator.getReport(Object.assign({},state));
+        event.preventDefault();
+        
+        new reportGenerator(Object.assign({},state)).getReport();
         
     }
 
