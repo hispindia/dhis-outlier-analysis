@@ -952,10 +952,10 @@ function report(params){
 		                                    select ougm.organisationunitid
 		                                    from orgunitgroupmembers ougm
 		                                    inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
-		                                    where oug.uid in (`+ouGroupUIDs+`)
+		                                    where oug.uid in ('`+ouGroupUIDs+`')
 	                                            )`;
 
-            if (ouGroupUIDs!='noGroup'){
+            if (ouGroupUIDKeySelect!='nogroup'){
                 subQuery = subQuery + groupQ;
             }
             
