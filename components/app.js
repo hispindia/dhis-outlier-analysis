@@ -19,7 +19,9 @@ export function ReportSelection(props){
         selectedOU : {},
         periodList : [],
         startPe : "-1",
-        endPe : "-1"
+        startPeText : "",
+        endPe : "-1",
+        endPeText : ""
         
     };
 
@@ -97,9 +99,11 @@ export function ReportSelection(props){
         function onPeChange(type,e){
 
             if (type == "startPe"){
-                state.startPe = e.target.value
+                state.startPe = e.target.value;
+                state.startPeText = e.target.selectedOptions[0].text;
             }else if (type =="endPe"){
                 state.endPe = e.target.value
+                state.endPeText = e.target.selectedOptions[0].text;
             }
             instance.setState(state);
         }
