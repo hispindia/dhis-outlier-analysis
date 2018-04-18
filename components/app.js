@@ -21,7 +21,9 @@ export function ReportSelection(props){
         startPe : "-1",
         startPeText : "",
         endPe : "-1",
-        endPeText : ""
+        endPeText : "",
+        aggregationType : "agg_selected",
+        loading : false
         
     };
 
@@ -40,8 +42,14 @@ export function ReportSelection(props){
     function handleSubmit(event){
 
         event.preventDefault();
-        
-        new reportGenerator(Object.assign({},state)).getReport();
+
+        state.loading = true;
+        instance.setState(state);
+        new reportGenerator(Object.assign({},state)).getReport(function(){
+
+            state.loading = false;
+            instance.setState(state);
+        });
         
     }
 
@@ -108,6 +116,12 @@ export function ReportSelection(props){
             instance.setState(state);
         }
 
+        function onAggregationTypeChange(e){
+
+            state.aggregationType = e.target.value;
+            instance.setState(state);
+        }
+        
         function onOUGroupChange(e){
 
             state.selectedOUGroup = e.target.value;
@@ -117,7 +131,7 @@ export function ReportSelection(props){
         
         return (
                 <form onSubmit={handleSubmit}>
-                <table>
+                <table >
                 <tbody>
                 <tr>
                 <td> Select Report </td><td><select value={state.selectedReport.key} onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select></td>
@@ -128,13 +142,16 @@ export function ReportSelection(props){
                 <td> Select End Period  </td><td><select onChange = {onPeChange.bind(this,"endPe")} value = {state.endPe} id="endPe">{getPeriodOptions(state.periodList)}</select></td>
                 </tr>              
                 <tr>
-                <td> Select Org Unit Group  </td><td><select value={state.selectedOUGroup} onChange = {onOUGroupChange} id="ouGroup">{getOrgUnitGroupOptions(props.data.ouGroups)}</select></td><td> Select Aggregation Mode </td><td></td>
+                <td> Select Org Unit Group  </td><td><select value={state.selectedOUGroup} onChange = {onOUGroupChange} id="ouGroup">{getOrgUnitGroupOptions(props.data.ouGroups)}</select></td><td> Select Aggregation Mode </td><td><select onChange = {onAggregationTypeChange.bind(this)} value = { state.aggregationType  }  id="aggregationType"> <option  value="agg_selected" > Use Captured </option> <option  value="agg_descendants" > Generate Aggregated </option> </select></td>
 
                 </tr>
-                
+
+                <tr></tr><tr></tr>
+                <tr><td>  <input type="submit" value="Generate Report" ></input></td>
+                <td> <img style = {state.loading?{"display":"inline"} : {"display" : "none"}} src="./images/loader-circle.GIF" alt="loader.." height="32" width="32"></img>  </td></tr>
+
                 </tbody>                
                 </table>
-                <input type="submit" value="Get Report"></input>
                 </form>
         )
     }

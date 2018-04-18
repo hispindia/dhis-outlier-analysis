@@ -6,6 +6,7 @@ function progressiveReportService(){
         var pivotWiseDataset = dataset.reduce((map,obj)=>{
             if (!map[obj.pivot]){
                 map[obj.pivot] = [];
+                map[obj.pivot].push(obj)
             }else{
                 map[obj.pivot].push(obj);
             }
@@ -22,6 +23,7 @@ function progressiveReportService(){
         for (var key in pivotWiseDataset){
             
             var list = pivotWiseDataset[key];
+            if (list.length==0){debugger}
             var pivot = list[0].pivot;
             
             cellValueList.push({

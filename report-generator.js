@@ -18,7 +18,7 @@ function report(params){
 
     this.getReport = function(callback){
 
-        var queryBuilder = new sqlQueryBuilder(mapping,params.selectedOU,params.selectedOUGroup,params.startPe,params.endPe,params.selectedReport.periodType);
+        var queryBuilder = new sqlQueryBuilder(mapping,params.selectedOU,params.selectedOUGroup,params.startPe,params.endPe,params.selectedReport.periodType,params.aggregationType);
         var query = queryBuilder.getSQLQuery();
 
         var sqlViewTemplate =
@@ -34,9 +34,7 @@ function report(params){
             var uid = body.response.uid;
 
             sqlViewService.getData(uid,function(error,response,body){
-                arrangeData(body,function(){
-                    
-                })
+                arrangeData(body,callback)
                 
                 sqlViewService.remove(uid,function(error,response,body){
                     if (error){
@@ -82,7 +80,7 @@ function report(params){
             wbOps.write(selectionParametersCellValueMap);
 
             wbOps.downloadWB("out","xlsx");
-            
+            callback()
         })        
     }
 

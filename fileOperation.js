@@ -23,7 +23,7 @@ function fileOperation(wb,sheetName){
 
         list.forEach((obj)=>{
 
-            if (obj.range){
+/*            if (obj.range){
                 var range = wb.sheet(sheetName).range(obj.range);
                 if (obj.style){
                     obj.style.forEach((st)=>{
@@ -32,7 +32,7 @@ function fileOperation(wb,sheetName){
                 }
             }
                        
-            if (obj.value && obj.cell){
+  */          if (obj.value && obj.cell){
                 wb.sheet(sheetName).cell(obj.cell).value(obj.value);
                 if (obj.style){
                     obj.style.forEach((st)=>{

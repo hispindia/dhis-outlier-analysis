@@ -3,3 +3,16 @@
     display:inline-block;
     vertical-align: top;
 }
+
+table tr {
+   border: 1px solid black;
+}
+
+table tr td{
+    padding : 10px;
+}
+
+button {
+
+    width : 200px;
+}

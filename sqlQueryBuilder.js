@@ -1,10 +1,11 @@
 
 
-function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate,periodType){
+function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate,periodType,aggType){
 
-    var ouLevel = selectedOU.children[0].level;
+  
     var children = selectedOU.children;
-
+    var selectedOULevel = selectedOU.level;
+    
     var selectedOUUID =  "'"+selectedOU.id+"'";
     
     startDate = getDate(periodType,startDate)
@@ -52,12 +53,14 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
         for (var key in ouGroupWiseDecocStringMap){
             
             if (subQuery == ""){
-                subQuery =  middleQuery(ouLevel,selectedOUUID,startDate,endDate,key,ouGroupWiseDecocStringMap[key]) ;
+                subQuery =  middleQuery(selectedOULevel,selectedOUUID,startDate,endDate,key,ouGroupWiseDecocStringMap[key],selectedOUGroupUID,aggType) ;
 
             }else{
 
             }
-            subQuery = subQuery + " union " +  middleQuery(ouLevel,selectedOUUID,startDate,endDate,key,ouGroupWiseDecocStringMap[key],selectedOUGroupUID);
+            subQuery = subQuery + `
+            union
+               ` +  middleQuery(selectedOULevel,selectedOUUID,startDate,endDate,key,ouGroupWiseDecocStringMap[key],selectedOUGroupUID,aggType);
         }
         
         var query = `select json_agg(main.*) from (`
@@ -70,13 +73,15 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
 
         
 
-        function middleQuery(ouLevel,selectedOUUID,startDate,endDate,ouGroupUIDKeySelect,decocStr,selectedGroupUID){
+        function middleQuery(ouLevel,selectedOUUID,startDate,endDate,ouGroupUIDKeySelect,decocStr,selectedGroupUID,aggType){
 
+            var selectedOUChildrenLevel = ouLevel+1;
+            
             var ouGroupUIDs = ouGroupUIDKeySelect.replace("-","','");
             
-            var subQuery = ` select ous.organisationunitid
-	    from _orgunitstructure ous
-	    where idlevel`+ouLevel+` in ( select ou.organisationunitid
+            var subQuery = ` select facilities.organisationunitid
+	    from _orgunitstructure facilities
+	    where idlevel`+selectedOUChildrenLevel+` in ( select ou.organisationunitid
 	                                  from organisationunit ou
 	                                  where parentid in (select organisationunitid 
 			                                     from organisationunit 
@@ -87,22 +92,36 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
 	    where parentid in (select organisationunitid 
 			       from organisationunit 
 			       where uid = `+selectedOUUID+`) `;
-            
-            if (selectedOUGroupUID!="-1"){
-                subQuery = `select ous.organisationunitid
-	        from orgunitgroupmembers ous
-	        inner join orgunitgroup oug on oug.orgunitgroupid = ous.orgunitgroupid
-	        where oug.uid in (`+"'"+selectedOUGroupUID+"'"+`)`;
 
-                suffixQ = ` select ou.uid as pivot,ou.name as pivotname,'null' as ougroup,'null' as decoc,0 as value
-                from  orgunitgroupmembers ous
-	        inner join orgunitgroup oug on oug.orgunitgroupid = ous.orgunitgroupid
-                inner join organisationunit ou on ous.organisationunitid = ous.organisationunitid
-	        where oug.uid in (`+"'"+selectedOUGroupUID+"'"+`)`
-                
+            if (aggType == "agg_selected"){
+                subQuery = ` select facilities.organisationunitid
+	        from _orgunitstructure facilities
+	        where facilities.organisationunitid in ( select ou.organisationunitid
+	                                                      from organisationunit ou
+	                                                      where parentid in (select organisationunitid 
+			                                                         from organisationunit 
+			                                                         where uid = `+selectedOUUID+`))`;                
             }
             
-            var groupQ = `and ous.organisationunitid in (
+
+            
+            if (selectedOUGroupUID!="-1"){
+                subQuery = `select facilities.organisationunitid
+	        from orgunitgroupmembers facilities
+	        inner join orgunitgroup oug on oug.orgunitgroupid = facilities.orgunitgroupid
+                inner join _orgunitstructure ous on ous.organisationunitid = facilities.organisationunitid
+	        where oug.uid in (`+"'"+selectedOUGroupUID+"'"+`) and ous.uidlevel`+ouLevel+` = `+selectedOUUID;
+
+                suffixQ = ` select ou.uid as pivot,ou.name as pivotname,'null' as ougroup,'null' as decoc,0 as value
+                from orgunitgroupmembers facilities
+	        inner join orgunitgroup oug on oug.orgunitgroupid = facilities.orgunitgroupid
+                inner join _orgunitstructure ous on ous.organisationunitid = facilities.organisationunitid
+                inner join organisationunit ou on ou.organisationunitid = facilities.organisationunitid
+	        where oug.uid in (`+"'"+selectedOUGroupUID+"'"+`) and ous.uidlevel`+ouLevel+` = `+selectedOUUID;
+          
+            }
+            
+            var groupQ = `and facilities.organisationunitid in (
 	        select ougm.organisationunitid
 	        from orgunitgroupmembers ougm
 	        inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
@@ -113,7 +132,7 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                 subQuery = subQuery + groupQ;
             }
             
-            var query = `select ous.uidlevel`+ouLevel+` as pivot,
+            var query = `select ous.uidlevel`+selectedOUChildrenLevel+` as pivot,
                 max(ou.name) as pivotname,
                 `+"'"+ouGroupUIDKeySelect+"'"+` as ougroup,concat(de.uid,'-',coc.uid) as decoc ,
             sum(dv.value :: float) as value
@@ -123,12 +142,12 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
 	    inner join dataelement as de on de.dataelementid = dv.dataelementid 
 	    inner join categoryoptioncombo coc on coc.categoryoptioncomboid = dv.categoryoptioncomboid 
 	    inner join _orgunitstructure ous on ous.organisationunitid = dv.sourceid 
-	    inner join organisationunit ou on ou.organisationunitid = ous.idlevel`+ouLevel+`
+	    inner join organisationunit ou on ou.organisationunitid = ous.idlevel`+selectedOUChildrenLevel+`
 	    where pe.startdate >= `+startDate+`
             and pe.startdate <= `+endDate+` 
 	    and dv.sourceid in ( ` + subQuery + ` )
             and concat(de.uid,'-',coc.uid) in (`+decocStr+`)
-	    group by ous.uidlevel`+ouLevel+`,concat(de.uid,'-',coc.uid)
+	    group by ous.uidlevel`+selectedOUChildrenLevel+`,concat(de.uid,'-',coc.uid)
             union all `+ suffixQ;
             
             return query;
