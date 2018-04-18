@@ -134,15 +134,15 @@ export function ReportSelection(props){
                 <table >
                 <tbody>
                 <tr>
-                <td> Select Report </td><td><select value={state.selectedReport.key} onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select></td>
-                <td> Selected Facility  </td><td><label disabled>{state.selectedOU.name}</label></td>               </tr>
+                <td> Select Report: </td><td><select value={state.selectedReport.key} onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select></td>
+                <td> Selected Facility:  </td><td><label disabled>{state.selectedOU.name}</label></td>               </tr>
                 <tr>
-                <td> Select Start Period  </td><td><select onChange = {onPeChange.bind(this,"startPe")} value = {state.startPe} id="startPe">{getPeriodOptions(state.periodList)}</select></td>
+                <td> Select Start Period:  </td><td><select onChange = {onPeChange.bind(this,"startPe")} value = {state.startPe} id="startPe">{getPeriodOptions(state.periodList)}</select></td>
 
-                <td> Select End Period  </td><td><select onChange = {onPeChange.bind(this,"endPe")} value = {state.endPe} id="endPe">{getPeriodOptions(state.periodList)}</select></td>
+                <td> Select End Period:  </td><td><select onChange = {onPeChange.bind(this,"endPe")} value = {state.endPe} id="endPe">{getPeriodOptions(state.periodList)}</select></td>
                 </tr>              
                 <tr>
-                <td> Select Org Unit Group  </td><td><select value={state.selectedOUGroup} onChange = {onOUGroupChange} id="ouGroup">{getOrgUnitGroupOptions(props.data.ouGroups)}</select></td><td> Select Aggregation Mode </td><td><select onChange = {onAggregationTypeChange.bind(this)} value = { state.aggregationType  }  id="aggregationType"> <option  value="agg_selected" > Use Captured </option> <option  value="agg_descendants" > Generate Aggregated </option> </select></td>
+                <td> Select Org Unit Group:  </td><td><select value={state.selectedOUGroup} onChange = {onOUGroupChange} id="ouGroup">{getOrgUnitGroupOptions(props.data.ouGroups)}</select></td><td> Select Aggregation Mode </td><td><select onChange = {onAggregationTypeChange.bind(this)} value = { state.aggregationType  }  id="aggregationType"> <option  value="agg_selected" > Use Captured </option> <option  value="agg_descendants" > Generate Aggregated: </option> </select></td>
 
                 </tr>
 
