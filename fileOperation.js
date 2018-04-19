@@ -22,17 +22,15 @@ function fileOperation(wb,sheetName){
     this.write = function(list){
 
         list.forEach((obj)=>{
-
-/*            if (obj.range){
-                var range = wb.sheet(sheetName).range(obj.range);
+         /*   if (obj.column){                
                 if (obj.style){
                     obj.style.forEach((st)=>{
-                        range.style(st.key,st.value);
+                        wb.sheet(sheetName).column(obj.column).style(st.key,st.value);
                     })
                 }
             }
-                       
-  */          if (obj.value && obj.cell){
+           */            
+            if (obj.value && obj.cell){
                 wb.sheet(sheetName).cell(obj.cell).value(obj.value);
                 if (obj.style){
                     obj.style.forEach((st)=>{

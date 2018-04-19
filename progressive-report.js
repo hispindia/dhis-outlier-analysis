@@ -78,37 +78,22 @@ function progressiveReportService(){
                 })
                 
             })
-            
+
+            cellValueList.push(getStyleCol(getLetter(colNo)));
             colNo = colNo+1;
         }
 
-        var rowTotalCellValuesList = getRowTotalValuesCellMap(rowTotalMap,getLetter(colNo));
-
+        cellValueList.push(getStyleCol(getLetter(colNo)));
         cellValueList.push({
-            range : startCol+startRow+":"+getLetter(colNo)+endRow,
-            style :[{
-                key:"border",
-                value : "true"
-            },{
-                key:"border",
-                value : "thin"
-            },{
-                key:"verticalAlignment",
-                value : "center"
-            },{
-                key:"horizontalAlignment",
-                value : "center"
-            },{
-                key:"wrapText",
-                value : "true"
-            },{
-                key:"fontFamily",
-                value : "Arial"
-            },{
-                key:"shrinkToFit",
-                value : "true"
+            cell : getLetter(colNo) + startRow,
+            value : "Total",
+            style : [{
+                key : "bold",
+                value :"true"
             }]
         })
+        
+        var rowTotalCellValuesList = getRowTotalValuesCellMap(rowTotalMap,getLetter(colNo));
 
         cellValueList.push.apply(cellValueList,rowTotalCellValuesList);
         
@@ -132,24 +117,45 @@ function progressiveReportService(){
             }
             return ret;
         }
-        
+
+        function getStyleCol(col){
+
+            return {
+                column : col,
+                style :[{
+                    key:"border",
+                    value : "true"
+                },{
+                    key:"border",
+                    value : "thin"
+                },{
+                    key:"verticalAlignment",
+                    value : "center"
+                },{
+                    key:"horizontalAlignment",
+                    value : "center"
+                },{
+                    key:"wrapText",
+                    value : "true"
+                },{
+                    key:"fontFamily",
+                    value : "Arial"
+                },{
+                    key:"shrinkToFit",
+                    value : "true"
+                }]
+            }
+        }
         
     }
     
-    this.getSelectionParametersCellValueMap = function(startPe,scell,endPe,ecell,facility,fcell){
+    this.getSelectionParametersCellValueMap = function(startPe,endPe,pcell,facility,fcell){
 
         var cellValueMap= [];
         
         cellValueMap.push( {
-            cell : scell,
-            value :startPe,
-            style : [{
-                key : "bold",
-                value :"true"
-            }]
-        },{
-            cell : ecell,
-            value :endPe,
+            cell : pcell,
+            value :startPe + " TO " + endPe,
             style : [{
                 key : "bold",
                 value :"true"
@@ -163,8 +169,7 @@ function progressiveReportService(){
             }]
         })
         
-        return cellValueMap;
-        
+        return cellValueMap;        
     }
     
     function getTotalsCellvalueMap(rowHeaders,totalsMap,ouGroupDecocToDataMap,pivotToColumnMap){

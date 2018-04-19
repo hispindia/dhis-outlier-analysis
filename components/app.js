@@ -14,16 +14,21 @@ export function ReportSelection(props){
 
     var state = {
         selectedReport : "-1",
+        selectedReportKey : "-1",
         reportList : [],
         selectedOUGroup : "-1",
-        selectedOU : {},
+        selectedOU : "-1",
         periodList : [],
         startPe : "-1",
         startPeText : "",
         endPe : "-1",
         endPeText : "",
-        aggregationType : "agg_selected",
-        loading : false
+        aggregationType : "use_captured",
+        loading : false,
+        reportValidation:"",
+        startPeValidation:"",
+        endPeValidation:"",
+        orgUnitValidation:""
         
     };
 
@@ -31,6 +36,7 @@ export function ReportSelection(props){
     props.services.ouSelectCallback.selected = function(ou){
 
         state.selectedOU = ou;
+        state.orgUnitValidation = ""
         instance.setState(state);
     }
                                    
@@ -40,8 +46,13 @@ export function ReportSelection(props){
     return instance;
     
     function handleSubmit(event){
-
         event.preventDefault();
+
+        if (isInValid()){
+            instance.setState(state);
+            return
+        }
+        
 
         state.loading = true;
         instance.setState(state);
@@ -53,10 +64,36 @@ export function ReportSelection(props){
         
     }
 
+    function isInValid(){
+        
+        var flag = false;
+        if (state.selectedOU == "-1"){
+            state.orgUnitValidation = "Please select an Org Unit"
+            flag = true;
+        }
+
+        if (state.selectedReport == "-1"){
+            state.reportValidation = "Please select a report"
+            flag = true;
+        }
+
+        if (state.startPe == "-1"){
+            state.startPeValidation = "Please select a start Period"
+            flag = true;
+        }
+        
+        if (state.endPe == "-1"){
+            state.endPeValidation = "Please select an end Period"
+            flag = true;
+        }
+
+        return flag;
+    }
+    
     function getReportOptions(reports){
 
         var options = [
-                <option disabled value="-1"> -- select a report -- </option>
+                <option key="select_report" disabled value="-1"> -- select a report -- </option>
                       ];
         
         reports.forEach(function(report){
@@ -73,13 +110,15 @@ export function ReportSelection(props){
         var periodList = props.services.peService.getPeriods(keyToObjMap[reportKey].period);
         state.periodList = periodList;
         state.selectedReport = keyToObjMap[reportKey];
+        state.selectedReportKey = state.selectedReport.key;
+        state.reportValidation = "";
         instance.setState(state)
     }
     
     function getPeriodOptions(periodList){
 
         var options = [
-                <option disabled value="-1"> -- select period -- </option>
+                <option key="select_period" disabled value="-1"> -- select period -- </option>
         ];
         
         periodList.forEach(function(pe){
@@ -92,7 +131,7 @@ export function ReportSelection(props){
 
     function getOrgUnitGroupOptions(ougs){
         var options = [
-                <option disabled value="-1"> -- select a facility group -- </option>
+                <option key="select_ougroup"  value="-1"> -- select a facility group -- </option>
 ];
         
         ougs.forEach(function(oug){
@@ -109,9 +148,11 @@ export function ReportSelection(props){
             if (type == "startPe"){
                 state.startPe = e.target.value;
                 state.startPeText = e.target.selectedOptions[0].text;
+                state.startPeValidation = "";
             }else if (type =="endPe"){
                 state.endPe = e.target.value
                 state.endPeText = e.target.selectedOptions[0].text;
+                state.endPeValidation = "";
             }
             instance.setState(state);
         }
@@ -130,22 +171,20 @@ export function ReportSelection(props){
 
         
         return (
-                <form onSubmit={handleSubmit}>
+                <form onSubmit={handleSubmit}><label key="orgUnitValidation" ><i>{state.orgUnitValidation}</i></label>
                 <table >
                 <tbody>
                 <tr>
-                <td> Select Report: </td><td><select value={state.selectedReport.key} onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select></td>
-                <td> Selected Facility:  </td><td><label disabled>{state.selectedOU.name}</label></td>               </tr>
+                <td> Select Report: </td><td><select style={{"width":"120px"}} value={state.selectedReportKey} onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select>
+                <label key="reportValidation" ><i>{state.reportValidation}</i></label></td>
+                <td> Selected Facility:  </td><td><label disabled>{state.selectedOU.name}</label></td></tr>
                 <tr>
-                <td> Select Start Period:  </td><td><select onChange = {onPeChange.bind(this,"startPe")} value = {state.startPe} id="startPe">{getPeriodOptions(state.periodList)}</select></td>
-
-                <td> Select End Period:  </td><td><select onChange = {onPeChange.bind(this,"endPe")} value = {state.endPe} id="endPe">{getPeriodOptions(state.periodList)}</select></td>
+                <td> Select Start Period:  </td><td><select onChange = {onPeChange.bind(this,"startPe")} value = {state.startPe} id="startPe">{getPeriodOptions(state.periodList)}</select><label key="startPeValidation" ><i>{state.startPeValidation}</i></label></td>
+                <td> Select End Period:  </td><td><select onChange = {onPeChange.bind(this,"endPe")} value = {state.endPe} id="endPe">{getPeriodOptions(state.periodList)}</select><label key="startPeValidation" ><i>{state.endPeValidation}</i></label></td>
                 </tr>              
                 <tr>
-                <td> Select Org Unit Group:  </td><td><select value={state.selectedOUGroup} onChange = {onOUGroupChange} id="ouGroup">{getOrgUnitGroupOptions(props.data.ouGroups)}</select></td><td> Select Aggregation Mode </td><td><select onChange = {onAggregationTypeChange.bind(this)} value = { state.aggregationType  }  id="aggregationType"> <option  value="agg_selected" > Use Captured </option> <option  value="agg_descendants" > Generate Aggregated: </option> </select></td>
-
+                <td> Select Org Unit Group:  </td><td><select value={state.selectedOUGroup} onChange = {onOUGroupChange} id="ouGroup">{getOrgUnitGroupOptions(props.data.ouGroups)}</select></td><td> Select Aggregation Mode </td><td><select onChange = {onAggregationTypeChange.bind(this)} value = { state.aggregationType  }  id="aggregationType"> <option key="use_captured"  value="use_captured" > Use Captured </option> <option key="agg_descendants" value="agg_descendants" > Generate Aggregated </option> </select></td>
                 </tr>
-
                 <tr></tr><tr></tr>
                 <tr><td>  <input type="submit" value="Generate Report" ></input></td>
                 <td> <img style = {state.loading?{"display":"inline"} : {"display" : "none"}} src="./images/loader-circle.GIF" alt="loader.." height="32" width="32"></img>  </td></tr>
