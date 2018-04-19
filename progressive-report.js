@@ -1,5 +1,5 @@
 function progressiveReportService(){
-
+debugger
     this.getRowDataCellValueList =  function(dataset,ouGroupDecocToObjMap,totalsMap,startCol,startRow,endRow){
 
         var colNo = getNumber(startCol);
@@ -13,8 +13,8 @@ function progressiveReportService(){
             return map;
         },[])
 
-        var ouGroupDecocToDataMap = dataset.reduce((map,obj) => {
-            map[obj.ougroup+"-"+obj.decoc] = obj
+        var ouGroupDecocToDataMap = dataset.reduce((map,obj) => {            
+            map[obj.pivot+"-"+obj.ougroup+"-"+obj.decoc] = obj
             return map;
         },[])
         
@@ -57,11 +57,9 @@ function progressiveReportService(){
             totalsMap.forEach((obj) => {
                 
                 var total = obj.ougroupdecoc.reduce((total,key)=>{
-                    
+                    key = pivot+"-"+key;
                     if (ouGroupDecocToDataMap[key]){
-                        if (ouGroupDecocToDataMap[key].pivot == pivot){
-                            total = total + ouGroupDecocToDataMap[key].value;
-                        }
+                        total = total + ouGroupDecocToDataMap[key].value;
                     }
                     return total;
                 },0)
