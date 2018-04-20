@@ -113,7 +113,7 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
             from _orgunitstructure ous
             inner join organisationunit ou on ou.organisationunitid = ous.organisationunitid
             where ous.uidlevel`+selectedOULevel+ `  in( `+ selectedOUUID +`)
-            and ou.uid in (`+getouGroupMemberDescendantSourceIDs(selectedOUGroupUID)+`)
+            and ou.organisationunitid in (`+getouGroupMemberDescendantSourceIDs(selectedOUGroupUID)+`)
             group by ougroup`
             
             var groupQ = "";
@@ -135,53 +135,26 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
             
             
             function getouGroupMemberDescendantSourceIDs(ouGroupUID){
-               var Q = `select concat(string_agg(distinct one::text,','), 
-	                               string_agg(distinct two::text,',') ,
-	                               string_agg(distinct three::text,','),
-	                               string_agg(distinct four::text,',') ,
-	                               string_agg(distinct five::text,',') ,
-	                               string_agg(distinct six::text,',') ,
-	                               string_agg(distinct seven::text,','),
-	                               string_agg(distinct eight::text,','),
-	                               string_agg(distinct nine::text,',') ,
-	                               string_agg(distinct ten::text,',') ,
-	                               string_agg(distinct eleven::text,',')) as sourceuids
-                from
-	        (
-                    select
-                    concat(''''::text,ou.uid::text,''''::text) as one,
-		    concat(''''::text,ou2.uid::text,''''::text) as two,
-		    concat(''''::text,ou3.uid::text,''''::text) as three,
-		    concat(''''::text,ou4.uid::text,''''::text) as four,
-		    concat(''''::text,ou5.uid::text,''''::text) as five,
-		    concat(''''::text,ou6.uid::text,''''::text) as six,
-		    concat(''''::text,ou7.uid::text,''''::text) as seven,
-		    concat(''''::text,ou8.uid::text,''''::text) as eight,
-		    concat(''''::text,ou9.uid::text,''''::text) as nine,
-		    concat(''''::text,ou10.uid::text,''''::text) as ten ,
-		    concat(''''::text,ou11.uid::text,''''::text) as eleven
-	            from orgunitgroupmembers ougm
-	            inner join organisationunit ou on ou.organisationunitid =  ougm.organisationunitid
-	            left join organisationunit ou2 on ou.organisationunitid =  ou2.parentid
-	            left join organisationunit ou3 on ou2.organisationunitid =  ou3.parentid
-	            left join organisationunit ou4 on ou3.organisationunitid =  ou4.parentid
-	            left join organisationunit ou5 on ou4.organisationunitid =  ou5.parentid
-	            left join organisationunit ou6 on ou5.organisationunitid =  ou6.parentid
-	            left join organisationunit ou7 on ou5.organisationunitid =  ou7.parentid
-	            left join organisationunit ou8 on ou5.organisationunitid =  ou8.parentid
-	            left join organisationunit ou9 on ou5.organisationunitid =  ou9.parentid
-	            left join organisationunit ou10 on ou5.organisationunitid =  ou10.parentid
-	            left join organisationunit ou11 on ou5.organisationunitid =  ou11.parentid
-
-	            inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
-	            where oug.uid in (` +"'"+ouGroupUID+"'"+ `)
-	            group by ou.uid,ou2.uid,ou3.uid,ou4.uid,ou5.uid,ou6.uid,ou7.uid,ou8.uid,ou9.uid,ou10.uid,ou11.uid
-                )main` 
+               var Q = `with recursive org_units as (
+                   select ou.organisationunitid
+                   from orgunitgroupmembers ougm
+                   join organisationunit ou on ou.organisationunitid =  ougm.organisationunitid
+                   join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
+                   where oug.uid in (`+"'"+ouGroupUID+"'"+`)
+                   
+                   union all
+                   
+                   select ch.organisationunitid
+                   from organisationunit ch 
+                   join org_units p on ch.parentid = p.organisationunitid
+                   
+               )
+                select organisationunitid from org_units` 
                 
                 return Q;
             }
             
-            function getGroupQ(ouGroupUIDKeySelect,selectedOUUID,selectedOUGroupUID){
+            function getGroupQ(ouGroupUIDKeySelect,selectedOUUID,selectedOULevel,selectedOUGroupUID){
                 
                 var ouGroupUIDs = "'"+ouGroupUIDKeySelect.replace("-","','") + "'";
                 
@@ -189,8 +162,8 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                 from _orgunitstructure ous
                 inner join organisationunit ou on ou.organisationunitid = ous.organisationunitid
                 where ous.uidlevel`+selectedOULevel+ `  in( `+ selectedOUUID +`)
-                and ou.uid in (`+getouGroupMemberDescendantSourceIDs(selectedOUGroupUID)+`)
-                and ous.organisationunitid in (select ougm.organisationunitid
+                and ou.organisationunitid in (`+getouGroupMemberDescendantSourceIDs(selectedOUGroupUID)+`)
+                and ou.organisationunitid in (select ougm.organisationunitid
                                                from orgunitgroupmembers ougm
                                                inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
                                                where oug.uid in (`+"'"+ouGroupUIDKeySelect+"'"+`))`             

@@ -1,5 +1,5 @@
 function progressiveReportService(){
-debugger
+
     this.getRowDataCellValueList =  function(dataset,ouGroupDecocToObjMap,totalsMap,startCol,startRow,endRow){
 
         var colNo = getNumber(startCol);
@@ -42,6 +42,8 @@ debugger
                 
                 var cell = getLetter(colNo)+decocObj.row
                 var value = obj.value;
+
+                // Cal total
                 if (rowTotalMap[decocObj.row]){
                     rowTotalMap[decocObj.row] = rowTotalMap[decocObj.row] + obj.value
                 }else{
@@ -63,6 +65,13 @@ debugger
                     }
                     return total;
                 },0)
+
+                // Cal total
+                if (rowTotalMap[obj.row]){
+                    rowTotalMap[obj.row] = rowTotalMap[obj.row] + total
+                }else{
+                    rowTotalMap[obj.row] = total
+                }
                 
                 var cell = getLetter(colNo) + obj.row
                 

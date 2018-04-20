@@ -6,7 +6,20 @@ import {ReportSelection} from './components/app';
 import {TreeComponent} from './lib/ous'
 import api from './dhis2API';
 
+
 window.onload = function(){
+/* Menu Bar */
+    try {
+        if ('Dhis2HeaderBar' in window) {
+            Dhis2HeaderBar.initHeaderBar(document.querySelector('#header'), '../../../api', { noLoadingIndicator: true });
+        }
+    } catch (e) {
+        if ('console' in window) {
+            console.error(e);
+        }
+    }
+    
+/********/
 
 
     var select = {}

@@ -170,8 +170,10 @@ export function ReportSelection(props){
         }
 
         
-        return (
+        return ( 
                 <form onSubmit={handleSubmit}><label key="orgUnitValidation" ><i>{state.orgUnitValidation}</i></label>
+                <h3> Facility/Period  Wise Progressive Report </h3><hr></hr>
+            
                 <table >
                 <tbody>
                 <tr>

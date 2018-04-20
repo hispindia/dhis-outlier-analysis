@@ -1,13 +1,10 @@
 
 {
     "sheetName" : "Sheet 1",
-    "pivotStartColumn" : "F",
+    "pivotStartColumn" : "D",
     "pivotStartRow" :"8",
     "pivotEndRow" : "1079",
-    "titleCell" : "A2",
-    "title" : "Organisation Unit Wise Progress Report",
-    "startDateCell" : "B6",
-    "endDateCell" : "D6",
+    "periodCell" : "B6",
     "facilityCell":"B4",
     "facilityP":"",
     "totals" : [

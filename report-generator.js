@@ -6,13 +6,8 @@ import progressiveReportService from './progressive-report';
 
 function report(params){
     var excelTemplate = params.selectedReport.excelTemplate;
-    var reportName = params.selectedReport.name;
-    var rowHeaders = params.selectedOU.children.reduce((list,obj) => {
-        list.push({name:obj.name, id:obj.id});
-        return list;
-    },[])
-
-  
+    var reportName = params.selectedReport.name + "_"+ params.selectedOU.name+ "_" + params.startPeText+"to"+params.endPeText+"_"+params.aggregationType;
+   
     var selectedOUName = params.selectedOU.name;
     var mapping = JSON.parse(params.selectedReport.json);
 

@@ -16,3 +16,39 @@ button {
 
     width : 200px;
 }
+
+#treeComponent
+{
+    margin-top:20px;
+}
+#leftBar {
+
+    display:inline-block;
+    height: 100%;
+    background-color: #f3f3f3;
+    width: 305px;
+    position: fixed;
+    top: 44px;
+    left: 0;
+    padding-top: 7px;
+    border-right: 1px solid #e1e1e1;
+    z-index: 10;
+
+}
+
+#main{
+
+    margin: 45px 10px 10px 320px;
+}
+
+#header1{
+    display: flex;
+    box-sizing: border-box;
+    background: rgb(39, 102, 150);
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    min-height: 48px;
+    z-index: 1400;
+}
