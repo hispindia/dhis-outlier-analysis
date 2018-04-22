@@ -333,7 +333,7 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                                                    + subQuery
                                                    + ` )main group by pivot,pivotname order by pivotname`
 
-    //    console.log(query)
+        console.log(query)
         
         return query;
 

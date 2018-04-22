@@ -4,17 +4,31 @@
     vertical-align: top;
 }
 
-table tr {
-   border: 1px solid black;
+.leftM{
+
+    padding-left:40px;
+
 }
 
-table tr td{
-    padding : 10px;
+table tr {
+   border-left: 1px solid black;
 }
+
+table td{
+    padding-bottom:20px;
+}
+
+
 
 button {
 
-    width : 200px;
+    width : 180px;
+}
+
+.formX select,input {
+
+    width: 180px;
+    
 }
 
 #treeComponent

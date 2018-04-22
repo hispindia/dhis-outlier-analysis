@@ -171,21 +171,25 @@ export function ReportSelection(props){
 
         
         return ( 
-                <form onSubmit={handleSubmit}><label key="orgUnitValidation" ><i>{state.orgUnitValidation}</i></label>
+                <form onSubmit={handleSubmit} className="formX">
                 <h3> Facility/Period  Wise Progressive Report </h3><hr></hr>
             
-                <table >
+                <table className="formX">
                 <tbody>
                 <tr>
-                <td> Select Report: </td><td><select style={{"width":"120px"}} value={state.selectedReportKey} onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select>
-                <label key="reportValidation" ><i>{state.reportValidation}</i></label></td>
-                <td> Selected Facility:  </td><td><label disabled>{state.selectedOU.name}</label></td></tr>
+                <td>  Select Report<span style={{"color":"red"}}> * </span> : </td><td><select  value={state.selectedReportKey} onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select><br></br>                <label key="reportValidation" ><i>{state.reportValidation}</i></label>
+                </td>
+                <td className="leftM">  Selected Facility<span style={{"color":"red"}}> * </span>  : </td><td><input disabled  value={state.selectedOU.name}></input><br></br><label key="orgUnitValidation" ><i>{state.orgUnitValidation}</i></label></td>
+                </tr>
                 <tr>
-                <td> Select Start Period:  </td><td><select onChange = {onPeChange.bind(this,"startPe")} value = {state.startPe} id="startPe">{getPeriodOptions(state.periodList)}</select><label key="startPeValidation" ><i>{state.startPeValidation}</i></label></td>
-                <td> Select End Period:  </td><td><select onChange = {onPeChange.bind(this,"endPe")} value = {state.endPe} id="endPe">{getPeriodOptions(state.periodList)}</select><label key="startPeValidation" ><i>{state.endPeValidation}</i></label></td>
+                <td> Select Start Period<span style={{"color":"red"}}> * </span>  :  </td><td><select onChange = {onPeChange.bind(this,"startPe")} value = {state.startPe} id="startPe">{getPeriodOptions(state.periodList)}</select><br></br><label key="startPeValidation" ><i>{state.startPeValidation}</i></label>
+                </td>
+                <td className="leftM" > Select End Period<span style={{"color":"red"}}> * </span>  : </td><td><select onChange = {onPeChange.bind(this,"endPe")} value = {state.endPe} id="endPe">{getPeriodOptions(state.periodList)}</select><br></br><label key="startPeValidation" ><i>{state.endPeValidation}</i></label>
+                </td>
                 </tr>              
                 <tr>
-                <td> Select Org Unit Group:  </td><td><select value={state.selectedOUGroup} onChange = {onOUGroupChange} id="ouGroup">{getOrgUnitGroupOptions(props.data.ouGroups)}</select></td><td> Select Aggregation Mode </td><td><select onChange = {onAggregationTypeChange.bind(this)} value = { state.aggregationType  }  id="aggregationType"> <option key="use_captured"  value="use_captured" > Use Captured </option> <option key="agg_descendants" value="agg_descendants" > Generate Aggregated </option> </select></td>
+                <td> Select Org Unit Group : </td><td><select value={state.selectedOUGroup} onChange = {onOUGroupChange} id="ouGroup">{getOrgUnitGroupOptions(props.data.ouGroups)}</select></td>
+                <td className="leftM" > Select Aggregation Mode : </td><td><select onChange = {onAggregationTypeChange.bind(this)} value = { state.aggregationType  }  id="aggregationType"> <option key="use_captured"  value="use_captured" > Use Captured </option> <option key="agg_descendants" value="agg_descendants" > Generate Aggregated </option> </select></td>
                 </tr>
                 <tr></tr><tr></tr>
                 <tr><td>  <input type="submit" value="Generate Report" ></input></td>
