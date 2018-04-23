@@ -7,7 +7,8 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
     var selectedOULevel = selectedOU.level;
     
     var selectedOUUID =  "'"+selectedOU.id+"'";
-    
+    var selectedOUName = "'"+selectedOU.name+"'";
+    var selectedOUNameWithSuffix = "'"+selectedOU.name + "_ONLY'";
     startDate = getDate(periodType,startDate)
     endDate = getDate(periodType,endDate)
     var ouGroupWiseDecocStringMap = mapping.decoc.reduce((map,obj) => {
@@ -283,12 +284,19 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
 
         var ouGroupIDWiseSourceIDs = ouGroupWiseSourceIDs.reduce((map,obj)=>{
 
-            map[obj.ougroup] = obj.sourceids;
+            if (!obj.sourceids){
+                map[obj.ougroup] = '0';
+            
+            }else{
+                map[obj.ougroup] = obj.sourceids;
+            
+            }
+            
             return map;
         },[])
         
         var subQuery = ""
-
+        var suffixQ = ""
         switch(selectedOUGroupUID){
         case "-1": // no group - default case
 
@@ -304,6 +312,19 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                     ` +  getDefaultMiddleQuery(selectedOULevel,selectedOUUID,startDate,endDate,ouGroupID,ouGroupWiseDecocStringMap[ouGroupID],ouGroupIDWiseSourceIDs[ouGroupID]);
                 }
             }
+            
+            suffixQ =   ` union select ou.uid as pivot,ou.name as pivotname,'null' as ougroup,'null' as decoc,0 as value 
+	    from organisationunit ou
+	    where parentid in (select organisationunitid 
+			       from organisationunit 
+			       where uid = `+selectedOUUID+`) union
+            select ou.uid as pivot, `+selectedOUNameWithSuffix+` as pivotname,'null' as ougroup,'null' as decoc,0 as value 
+	    from organisationunit ou
+	where ou.uid in ( `+selectedOUUID+`)`
+
+            
+
+            subQuery = subQuery + suffixQ;
             break;         
 
         default : //group case
@@ -324,14 +345,23 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                     ` +  getGroupMiddleQuery(selectedOULevel,startDate,endDate,ouGroupID,ouGroupWiseDecocStringMap[ouGroupID],sourceids,selectedOUGroupUID);
                 }
             }
+
+        suffixQ =   ` union select ou.uid as pivot,ou.name as pivotname,'null' as ougroup,'null' as decoc,0 as value 
+	from organisationunit ou
+        inner join orgunitgroupmembers ougm on ou.organisationunitid = ougm.organisationunitid
+        inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
+	where oug.uid in (`+"'"+selectedOUGroupUID+"'"+`)`;
+            
+            subQuery = subQuery + suffixQ;
             break;         
             
         }
         
-        
+   
+
         var query = `select json_agg(main.*) from (`
                                                    + subQuery
-                                                   + ` )main group by pivot,pivotname order by pivotname`
+                                                   + ` )main group by pivot,pivotname order by pivotname!=`+selectedOUNameWithSuffix+` desc ,pivotname`
 
         console.log(query)
         
@@ -339,15 +369,6 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
 
         function getDefaultMiddleQuery(ouLevel,selectedOUUID,startDate,endDate,ouGroupID,decocStr,sourceids){
             var selectedOUChildrenLevel = ouLevel+1;
-            
-            var suffixQ =   ` select ou.uid as pivot,ou.name as pivotname,'null' as ougroup,'null' as decoc,0 as value 
-	    from organisationunit ou
-	    where parentid in (select organisationunitid 
-			       from organisationunit 
-			       where uid = `+selectedOUUID+`) `;
-
-            
-            
             
             var query = `select ous.uidlevel`+selectedOUChildrenLevel+` as pivot,
                 max(ou.name) as pivotname,
@@ -368,25 +389,37 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
 	    and dv.sourceid in ( ` + sourceids + ` )
             and dv.dataelementid in  (select dataelementid from dataelement where uid in (`+deListCommaSeparated+`))
             and concat(de.uid,'-',coc.uid) in (`+decocStr+`)
-	    group by ous.uidlevel`+selectedOUChildrenLevel+`,de.uid,coc.uid
-            union all `+ suffixQ;
+	    group by ous.uidlevel`+selectedOUChildrenLevel+`,de.uid,coc.uid `
+
+            var selectedOUQ =  `select ou.uid as pivot,
+                `+selectedOUNameWithSuffix+` as pivotname,
+                `+
+                "'"+ouGroupID+"'"+` as ougroup,
+            concat(de.uid,'-',coc.uid) as decoc ,
+            sum(dv.value :: float) as value
+	    from datavalue dv
+	    inner join period as pe on pe.periodid = dv.periodid 
+	    inner join periodtype as pt on pt.periodtypeid = pe.periodtypeid 
+	    inner join dataelement as de on de.dataelementid = dv.dataelementid 
+	    inner join categoryoptioncombo coc on coc.categoryoptioncomboid = dv.categoryoptioncomboid 
+	    inner join _orgunitstructure ous on ous.organisationunitid = dv.sourceid 
+	    inner join organisationunit ou on ou.organisationunitid = ous.idlevel`+selectedOUChildrenLevel+`
+	    where pe.startdate >= `+startDate+`
+            and pe.startdate <= `+endDate+`
+            and dv.attributeoptioncomboid=15
+	    and dv.sourceid in ( select organisationunitid from organisationunit where uid in (` + selectedOUUID + `) )
+            and dv.dataelementid in  (select dataelementid from dataelement where uid in (`+deListCommaSeparated+`))
+            and concat(de.uid,'-',coc.uid) in (`+decocStr+`)
+	    group by ou.uid,de.uid,coc.uid `
             
-            return query;
+            return query + " union " + selectedOUQ;
             
         }
         
         function getGroupMiddleQuery(ouLevel,startDate,endDate,ouGroupID,decocStr,sourceids,selOrgUnitGroupUID){
             var selectedOUChildrenLevel = ouLevel+1;
             
-            var suffixQ =   ` select ou.uid as pivot,ou.name as pivotname,'null' as ougroup,'null' as decoc,0 as value 
-	    from organisationunit ou
-            inner join orgunitgroupmembers ougm on ou.organisationunitid = ougm.organisationunitid
-            inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
-	    where oug.uid in (`+"'"+selOrgUnitGroupUID+"'"+`)`
-
-            
-            
-            
+      
             var query = `select ou.uid as pivot,
                 max(ou.name) as pivotname,
                 `+
@@ -408,8 +441,7 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
             and dv.dataelementid in  (select dataelementid from dataelement where uid in (`+deListCommaSeparated+`))
             and concat(de.uid,'-',coc.uid) in (`+decocStr+`)
             and oug.uid in (`+"'"+selOrgUnitGroupUID+"'"+`)
-	    group by ou.uid,de.uid,coc.uid
-            union all `+ suffixQ;
+	    group by ou.uid,de.uid,coc.uid`
             
             return query;
 

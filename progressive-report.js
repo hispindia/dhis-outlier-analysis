@@ -1,6 +1,6 @@
 function progressiveReportService(){
 
-    this.getRowDataCellValueList =  function(dataset,ouGroupDecocToObjMap,totalsMap,startCol,startRow,endRow){
+    this.getRowDataCellValueList =  function(dataset,ouGroupDecocToObjMap,totalsMap,startCol,startRow,endRow,selectedOUName){
 
         var colNo = getNumber(startCol);
         var pivotWiseDataset = dataset.reduce((map,obj)=>{
@@ -90,10 +90,10 @@ function progressiveReportService(){
             colNo = colNo+1;
         }
 
-        cellValueList.push(getStyleCol(getLetter(colNo)));
+  //      cellValueList.push(getStyleCol(getLetter(colNo)));
         cellValueList.push({
             cell : getLetter(colNo) + startRow,
-            value : "Total",
+            value : selectedOUName+"_Total",
             style : [{
                 key : "bold",
                 value :"true"
@@ -162,7 +162,7 @@ function progressiveReportService(){
         
         cellValueMap.push( {
             cell : pcell,
-            value :startPe + " TO " + endPe,
+            value :startPe + " To " + endPe,
             style : [{
                 key : "bold",
                 value :"true"
@@ -179,42 +179,7 @@ function progressiveReportService(){
         return cellValueMap;        
     }
     
-    function getTotalsCellvalueMap(rowHeaders,totalsMap,ouGroupDecocToDataMap,pivotToColumnMap){
-
-        var cellValueMap = [];
-
-        for (var key in rowHeaders){
-
-            var pivot = rowHeaders[key].id;
-            
-            totalsMap.forEach((obj) => {
-                
-                var total = obj.ougroupdecoc.reduce((total,key)=>{
-                    
-                    if (ouGroupDecocToDataMap[key]){
-                        if (ouGroupDecocToDataMap[key].pivot == pivot){
-                            total = total + ouGroupDecocToDataMap[key].value;
-                        }
-                    }
-                    return total;
-                },0)
-                
-                var cell = pivotToColumnMap[pivot] + obj.row
-                
-                cellValueMap.push( {
-                    cell : cell,
-                    value :total,
-                    style : [{
-                        key : "bold",
-                        value :"true"
-                    }]
-                })
-                
-            })
-        }
-        return cellValueMap
-    }
-    
+  
     function getRowTotalValuesCellMap(rowTotalMap,lastColumn){
 
         var cellValueMap= [];

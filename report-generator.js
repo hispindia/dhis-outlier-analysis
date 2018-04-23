@@ -32,8 +32,16 @@ function report(params){
             var uid = body.response.uid;
            
             sqlViewService.getData(uid,function(error,response,body){
+                
+          /*      if (params.selectedOUGroup!="-1"){
+                    if (body.rows[0] == ""){
+                        alert(params.selectedOU.name+" has no facilities in the selected group");
+                        callback()
+                        return;
+                    }
+                }
+            */    
                 doMainQuery(body,callback)
-               // arrangeData(body,callback)
                 
                 sqlViewService.remove(uid,function(error,response,body){
                     if (error){
@@ -45,6 +53,18 @@ function report(params){
             
         })
 
+        function checkIfFacilityExists(rows){
+
+            var flag = false;
+            for (var key in rows){debugger
+                if (rows[key].sourceids){
+                    flag=true
+                    break
+                }                
+            }
+            return flag;
+        }
+        
         function doMainQuery(data,callback){
             var ouGroupWiseSourceIDs = JSON.parse(data.rows[0]);
             var mainQ = queryBuilder.getSQLQuery(ouGroupWiseSourceIDs);
@@ -98,7 +118,7 @@ function report(params){
 
         var selectionParametersCellValueMap = progressiveReportService.getSelectionParametersCellValueMap(params.startPeText,params.endPeText,mapping.periodCell,selectedOUName,mapping.facilityCell);
 
-        var rowDataCellValueList = progressiveReportService.getRowDataCellValueList(dataset,ouGroupDecocToObjMap,mapping.totals,mapping.pivotStartColumn,startRow,mapping.pivotEndRow);
+        var rowDataCellValueList = progressiveReportService.getRowDataCellValueList(dataset,ouGroupDecocToObjMap,mapping.totals,mapping.pivotStartColumn,startRow,mapping.pivotEndRow,selectedOUName);
         
       
         XLSX.fromDataAsync(excelTemplate,{base64:true}).then(function(wb){
