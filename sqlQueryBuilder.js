@@ -82,8 +82,12 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                     
                 }
             }
+
+            if (groupQ!=""){
+                groupQ =  " union "+groupQ;
+            }
             
-            var Q = `select json_agg(main.*) from (`+nogroupQ + ` union ` + groupQ +`)main`;
+            var Q = `select json_agg(main.*) from (`+nogroupQ +  groupQ +`)main`;
             
             return Q;
 
@@ -102,7 +106,7 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                 and ougm.organisationunitid in ((select ous.organisationunitid
                                              from _orgunitstructure ous
                                                  where ous.uidlevel`+selectedOULevel+`  in( `+selectedOUUID+`)))
-                group by ougroup`
+                group by ougroup `
 
                 return Q;
             }
@@ -129,8 +133,12 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                     
                 }
             }
+
+            if (groupQ!=""){
+                groupQ =  " union "+groupQ;
+            }
             
-            var Q = `select json_agg(main.*) from (`+nogroupQ + ` union ` + groupQ +`)main`;
+            var Q = `select json_agg(main.*) from (`+nogroupQ +  groupQ +`)main`;
             
             return Q;
             
@@ -193,8 +201,12 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                     
                 }
             }
+
+            if (groupQ!=""){
+                groupQ =  " union "+groupQ;
+            }
             
-            var Q = `select json_agg(main.*) from (`+nogroupQ + ` union ` + groupQ +`)main`;
+            var Q = `select json_agg(main.*) from (`+nogroupQ + groupQ +`)main`;
             
             return Q;
 
@@ -234,8 +246,11 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                 }
             }
 
-
-            var Q = `select json_agg(main.*) from (`+nogroupQ + ` union ` + groupQ +`)main`;
+            if (groupQ!=""){
+                groupQ =  " union "+groupQ;
+            }
+            
+            var Q = `select json_agg(main.*) from (`+nogroupQ  + groupQ +`)main`;
 
             return Q;
 

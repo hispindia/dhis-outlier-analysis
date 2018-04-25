@@ -1,5 +1,6 @@
 import React,{propTypes} from 'react';
 import reportGenerator from '../report-generator';
+import api from '../lib/dhis2API';
 
 export function ReportSelection(props){
    
@@ -53,15 +54,29 @@ export function ReportSelection(props){
             return
         }
         
-
-        state.loading = true;
-        instance.setState(state);
-        new reportGenerator(Object.assign({},state)).getReport(function(){
-
-            state.loading = false;
-            instance.setState(state);
-        });
         
+        if (state.selectedReport.excelTemplate){
+            getReport();
+        }else{
+            var dsService = new api.dataStoreService('XLReport_Data');
+            dsService.getValue(state.selectedReportKey).then((data) => {
+                state.selectedReport.mapping=data.mapping;
+                state.selectedReport.excelTemplate = data.excelTemplate;
+                getReport();
+            })
+        }
+        
+   
+
+        function getReport(){
+            state.loading = true;
+            instance.setState(state);
+            new reportGenerator(Object.assign({},state)).getReport(function(){
+                
+                state.loading = false;
+                instance.setState(state);
+            });
+        }
     }
 
     function isInValid(){

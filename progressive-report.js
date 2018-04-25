@@ -1,6 +1,6 @@
 function progressiveReportService(){
 
-    this.getRowDataCellValueList =  function(dataset,ouGroupDecocToObjMap,totalsMap,startCol,startRow,endRow,selectedOUName){
+    this.getRowDataCellValueList =  function(dataset,ouGroupDecocToObjMap,calcMap,startCol,startRow,endRow,selectedOUName){
 
         var colNo = getNumber(startCol);
         var pivotWiseDataset = dataset.reduce((map,obj)=>{
@@ -17,7 +17,8 @@ function progressiveReportService(){
             map[obj.pivot+"-"+obj.ougroup+"-"+obj.decoc] = obj
             return map;
         },[])
-        
+
+              
         var cellValueList = [];
         var rowTotalMap = []
         for (var key in pivotWiseDataset){
@@ -35,13 +36,16 @@ function progressiveReportService(){
                 }]
             })
 
-            
+            var rowWisePivotList = []
             list.forEach((obj) => {                
                 var decocObj = ouGroupDecocToObjMap[obj.ougroup+"-"+obj.decoc];
                 if(!decocObj){return}
                 
                 var cell = getLetter(colNo)+decocObj.row
                 var value = obj.value;
+
+                //for calc
+                rowWisePivotList.push({"row":decocObj.row,"value": value});
 
                 // Cal total
                 if (rowTotalMap[decocObj.row]){
@@ -56,17 +60,38 @@ function progressiveReportService(){
                 })
             })
             
-            totalsMap.forEach((obj) => {
+            calcMap.forEach((obj) => {
+                var total = "";
                 
-                var total = obj.ougroupdecoc.reduce((total,key)=>{
-                    key = pivot+"-"+key;
-                    if (ouGroupDecocToDataMap[key]){
-                        total = total + ouGroupDecocToDataMap[key].value;
-                    }
-                    return total;
-                },0)
+                if (rowWisePivotList.length!=0){
+                    var rowMap = rowWisePivotList.reduce((map,obj)=>{
+                        map[obj.row] = obj.value;
+                        return map
+                    },[])
 
-                // Cal total
+                    var pattern = /R\d+W/g
+                    var matches = obj.expression.match(pattern);
+                    var objExpression = obj.expression ;
+                    for (var key in matches){
+                        var expRow = matches[key];
+                        expRow = expRow.replace(/R/,"");
+                        expRow = expRow.replace(/W/,"");
+                        if (rowMap[expRow]){
+                            objExpression = objExpression.replace(matches[key],rowMap[expRow]);
+                        }else{
+                            objExpression = objExpression.replace(matches[key],0);
+                        }
+                    }                    
+                    try{                        
+                        total = eval(objExpression)
+                    }catch(e){
+                        console.log("Failed to evaluate calculated expression" +e + objExpression)
+                    }
+                    
+                }
+                
+
+               // Cal total
                 if (rowTotalMap[obj.row]){
                     rowTotalMap[obj.row] = rowTotalMap[obj.row] + total
                 }else{

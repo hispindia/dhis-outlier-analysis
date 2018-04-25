@@ -32,7 +32,7 @@ window.onload = function(){
 
    
   
-    var dsService = new api.dataStoreService('XLReports');
+    var dsService = new api.dataStoreService('XLReport_Metadata');
     var ouService = new api.organisationUnitService();
     var peService = new api.periodService();
     

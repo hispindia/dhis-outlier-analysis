@@ -9,7 +9,7 @@ function report(params){
     var reportName = params.selectedReport.name + "_"+ params.selectedOU.name+ "_" + params.startPeText+"To"+params.endPeText;
    
     var selectedOUName = params.selectedOU.name;
-    var mapping = JSON.parse(params.selectedReport.json);
+    var mapping = JSON.parse(params.selectedReport.mapping);
 
     this.getReport = function(callback){
 
@@ -118,7 +118,7 @@ function report(params){
 
         var selectionParametersCellValueMap = progressiveReportService.getSelectionParametersCellValueMap(params.startPeText,params.endPeText,mapping.periodCell,selectedOUName,mapping.facilityCell);
 
-        var rowDataCellValueList = progressiveReportService.getRowDataCellValueList(dataset,ouGroupDecocToObjMap,mapping.totals,mapping.pivotStartColumn,startRow,mapping.pivotEndRow,selectedOUName);
+        var rowDataCellValueList = progressiveReportService.getRowDataCellValueList(dataset,ouGroupDecocToObjMap,mapping.calc,mapping.pivotStartColumn,startRow,mapping.pivotEndRow,selectedOUName);
         
       
         XLSX.fromDataAsync(excelTemplate,{base64:true}).then(function(wb){
