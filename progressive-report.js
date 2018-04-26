@@ -1,6 +1,6 @@
 function progressiveReportService(){
 
-    this.getRowDataCellValueList =  function(dataset,ouGroupDecocToObjMap,calcMap,startCol,startRow,endRow,selectedOUName){
+    this.getRowDataCellValueList =  function(dataset,ouGroupDecocToObjMap,calcMap,startCol,startRow,endRow,selectedOUName,ouIDToNameMap){
 
         var colNo = getNumber(startCol);
         var pivotWiseDataset = dataset.reduce((map,obj)=>{
@@ -93,7 +93,7 @@ function progressiveReportService(){
 
                // Cal total
                 if (rowTotalMap[obj.row]){
-                    rowTotalMap[obj.row] = rowTotalMap[obj.row] + total
+                    rowTotalMap[obj.row] = rowTotalMap[obj.row] + parseInt(total)
                 }else{
                     rowTotalMap[obj.row] = total
                 }

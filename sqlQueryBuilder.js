@@ -35,6 +35,27 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
         
     }
 
+    function getOrgUnitDescendantsQuery(ouUID){
+        var Q = `with recursive org_units as (
+            select ou.organisationunitid
+            from organisationunit ou 
+            where ou.parentid in (select organisationunitid 
+			          from organisationunit 
+			          where uid = `+ouUID+`)
+            
+            union all
+            
+            select ch.organisationunitid
+            from organisationunit ch 
+            join org_units p on ch.parentid = p.organisationunitid                   
+        )
+        select organisationunitid from org_units`
+
+        return Q;
+        
+    }
+
+    
     this.getSourceIDSQLQuery = function(){
 
 
@@ -88,7 +109,7 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
             }
             
             var Q = `select json_agg(main.*) from (`+nogroupQ +  groupQ +`)main`;
-            
+           
             return Q;
 
             function getGroupQ(ouGroupUIDKeySelect,selectedOUUID,selectedOUGroupUID){
@@ -114,10 +135,9 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
         
         function getOUGroupAggDescendants(){
             
-            var nogroupQ = `select 'nogroup' as ougroup,string_agg(ous.organisationunitid::text,',') as sourceids
-            from _orgunitstructure ous
-            inner join organisationunit ou on ou.organisationunitid = ous.organisationunitid
-            where ous.uidlevel`+selectedOULevel+ `  in( `+ selectedOUUID +`)
+            var nogroupQ = `select 'nogroup' as ougroup,string_agg(ou.organisationunitid::text,',') as sourceids
+            from organisationunit ou
+            where ou.organisationunitid in (`+getOrgUnitDescendantsQuery(selectedOUUID)+`)
             and ou.organisationunitid in (`+getouGroupMemberDescendantSourceIDs(selectedOUGroupUID)+`)
             group by ougroup`
             
@@ -167,15 +187,14 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                 
                 var ouGroupUIDs = "'"+ouGroupUIDKeySelect.replace("-","','") + "'";
                 
-                var Q =`select ` + "'" + ouGroupUIDKeySelect + "'" + ` as ougroup,string_agg(ous.organisationunitid::text,',') as sourceids
-                from _orgunitstructure ous
-                inner join organisationunit ou on ou.organisationunitid = ous.organisationunitid
-                where ous.uidlevel`+selectedOULevel+ `  in( `+ selectedOUUID +`)
+                var Q =`select ` + "'" + ouGroupUIDKeySelect + "'" + ` as ougroup,string_agg(ou.organisationunitid::text,',') as sourceids
+                from organisationunit ou
+                where ou.organisationunitid in (`+getOrgUnitDescendantsQuery(selectedOUUID)+`)
                 and ou.organisationunitid in (`+getouGroupMemberDescendantSourceIDs(selectedOUGroupUID)+`)
                 and ou.organisationunitid in (select ougm.organisationunitid
                                                from orgunitgroupmembers ougm
                                                inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
-                                               where oug.uid in (`+"'"+ouGroupUIDKeySelect+"'"+`))`             
+                                               where oug.uid in (`+ouGroupUIDs+`))`             
 
                 return Q;
             }
@@ -362,10 +381,14 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
             }
 
         suffixQ =   ` union select ou.uid as pivot,ou.name as pivotname,'null' as ougroup,'null' as decoc,0 as value 
-	from organisationunit ou
-        inner join orgunitgroupmembers ougm on ou.organisationunitid = ougm.organisationunitid
-        inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
-	where oug.uid in (`+"'"+selectedOUGroupUID+"'"+`)`;
+            from orgunitgroupmembers ougm
+            inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
+            inner join organisationunit ou on ou.organisationunitid = ougm.organisationunitid
+            where oug.uid in (`+"'"+selectedOUGroupUID+"'"+`)
+            and ougm.organisationunitid in (select ous.organisationunitid
+					    from _orgunitstructure ous
+					    where ous.uidlevel`+selectedOULevel+`  in( `+selectedOUUID+`)
+                                           )`
             
             subQuery = subQuery + suffixQ;
             break;         
@@ -401,6 +424,7 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
 	    where pe.startdate >= `+startDate+`
             and pe.startdate <= `+endDate+`
             and dv.attributeoptioncomboid=15
+	    and dv.value ~'^-?[0-9]+\.?[0-9]*$' and dv.value !='0'
 	    and dv.sourceid in ( ` + sourceids + ` )
             and dv.dataelementid in  (select dataelementid from dataelement where uid in (`+deListCommaSeparated+`))
             and concat(de.uid,'-',coc.uid) in (`+decocStr+`)
@@ -422,6 +446,7 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
 	    where pe.startdate >= `+startDate+`
             and pe.startdate <= `+endDate+`
             and dv.attributeoptioncomboid=15
+	    and dv.value ~ '^-?[0-9]+\.?[0-9]*$' and dv.value !='0'
 	    and dv.sourceid in ( select organisationunitid from organisationunit where uid in (` + selectedOUUID + `) )
             and dv.dataelementid in  (select dataelementid from dataelement where uid in (`+deListCommaSeparated+`))
             and concat(de.uid,'-',coc.uid) in (`+decocStr+`)
@@ -433,30 +458,43 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
         
         function getGroupMiddleQuery(ouLevel,startDate,endDate,ouGroupID,decocStr,sourceids,selOrgUnitGroupUID){
             var selectedOUChildrenLevel = ouLevel+1;
-            
-      
-            var query = `select ou.uid as pivot,
-                max(ou.name) as pivotname,
-                `+
-                "'"+ouGroupID+"'"+` as ougroup,
+
+            var query = ` select groupmemq.pivot as pivot,max(groupmemq.pivotname) as pivotname,dataq.ougroup as ougroup,dataq.decoc,sum(dataq.value) as value from 
+            (select dv.sourceid as sourceid,`+
+             "'"+ouGroupID+"'"+`::text as ougroup,
             concat(de.uid,'-',coc.uid) as decoc ,
             sum(dv.value :: float) as value
 	    from datavalue dv
 	    inner join period as pe on pe.periodid = dv.periodid 
 	    inner join periodtype as pt on pt.periodtypeid = pe.periodtypeid 
-	    inner join dataelement as de on de.dataelementid = dv.dataelementid 
+	     inner join dataelement as de on de.dataelementid = dv.dataelementid 
 	    inner join categoryoptioncombo coc on coc.categoryoptioncomboid = dv.categoryoptioncomboid 
-	    inner join orgunitgroupmembers ougm on ougm.organisationunitid = dv.sourceid
-            inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
-	    inner join organisationunit ou on ou.organisationunitid = ougm.organisationunitid
-	    where pe.startdate >= `+startDate+`
-            and pe.startdate <= `+endDate+`
-            and dv.attributeoptioncomboid=15
-	    and dv.sourceid in ( ` + sourceids + ` )
-            and dv.dataelementid in  (select dataelementid from dataelement where uid in (`+deListCommaSeparated+`))
-            and concat(de.uid,'-',coc.uid) in (`+decocStr+`)
-            and oug.uid in (`+"'"+selOrgUnitGroupUID+"'"+`)
-	    group by ou.uid,de.uid,coc.uid`
+	     inner join organisationunit ou on ou.organisationunitid = dv.sourceid
+	     where pe.startdate >= `+startDate+`
+             and pe.startdate <= `+endDate+`
+	     and dv.value ~ '^-?[0-9]+\.?[0-9]*$' and dv.value !='0'
+             and dv.attributeoptioncomboid=15
+	     and dv.sourceid in (`+sourceids+` )
+	     group by dv.sourceid,de.uid,coc.uid ) dataq
+             inner join 
+             
+             (with recursive org_units as (
+                 select ougm.organisationunitid as ougmid,ou.uid as pivot,ou.name as pivotname
+                 from orgunitgroupmembers ougm
+                 join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
+		 join organisationunit ou on ou.organisationunitid = ougm.organisationunitid
+                 where oug.uid in (`+"'"+selOrgUnitGroupUID+"'"+`)
+                 
+                 union all
+                 
+                 select ch.organisationunitid as ougmid,p.pivot as pivot,p.pivotname as pivotname
+                 from organisationunit ch 
+                 join org_units p on ch.parentid = p.ougmid
+                 
+             )
+              select * from org_units)groupmemq
+             on dataq.sourceid = groupmemq.ougmid
+            group by groupmemq.pivot,dataq.decoc,dataq.ougroup`                     
             
             return query;
 
