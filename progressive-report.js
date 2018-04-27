@@ -90,12 +90,13 @@ function progressiveReportService(){
                     
                 }
                 
-
+                if (total != ""){
                // Cal total
-                if (rowTotalMap[obj.row]){
-                    rowTotalMap[obj.row] = rowTotalMap[obj.row] + parseInt(total)
-                }else{
-                    rowTotalMap[obj.row] = total
+                    if (rowTotalMap[obj.row]){
+                        rowTotalMap[obj.row] = rowTotalMap[obj.row] + parseInt(total)
+                    }else{
+                        rowTotalMap[obj.row] = total
+                    }
                 }
                 
                 var cell = getLetter(colNo) + obj.row

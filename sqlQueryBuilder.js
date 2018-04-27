@@ -441,8 +441,7 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
 	    inner join periodtype as pt on pt.periodtypeid = pe.periodtypeid 
 	    inner join dataelement as de on de.dataelementid = dv.dataelementid 
 	    inner join categoryoptioncombo coc on coc.categoryoptioncomboid = dv.categoryoptioncomboid 
-	    inner join _orgunitstructure ous on ous.organisationunitid = dv.sourceid 
-	    inner join organisationunit ou on ou.organisationunitid = ous.idlevel`+selectedOUChildrenLevel+`
+	    inner join organisationunit ou on ou.organisationunitid = dv.sourceid
 	    where pe.startdate >= `+startDate+`
             and pe.startdate <= `+endDate+`
             and dv.attributeoptioncomboid=15
