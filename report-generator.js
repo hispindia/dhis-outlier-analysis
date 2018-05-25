@@ -4,7 +4,7 @@ import sqlQueryBuilder from './sqlQueryBuilder';
 import fileOps from './fileOperation';
 import progressiveReportService from './progressive-report';
 
-function report(params){
+function report(params){debugger
     var excelTemplate = params.selectedReport.excelTemplate;
     var reportName = params.selectedReport.name + "_"+ params.selectedOU.name+ "_" + params.startPeText+"To"+params.endPeText;
    
@@ -16,7 +16,6 @@ function report(params){
         var queryBuilder = new sqlQueryBuilder(mapping,params.selectedOU,params.selectedOUGroup,params.startPe,params.endPe,params.selectedReport.periodType,params.aggregationType);
     //    var query = queryBuilder.getSQLQuery();
         var sourceIDQuery = queryBuilder.getSourceIDSQLQuery()
-        
         var sqlViewTemplate =
             {
                 "name": "999999_XLReport_"+Math.random(1),
@@ -49,7 +48,6 @@ function report(params){
                     }
                 })
             })
-            
             
         })
 

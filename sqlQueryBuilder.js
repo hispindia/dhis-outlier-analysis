@@ -17,10 +17,8 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
         if (!str) {
             map[obj.ougroup] = "'"+obj.de+"-"+obj.coc+"'"
         }else{
-            map[obj.ougroup] = str + ",'"+obj.de+"-"+obj.coc +"'";
-            
+            map[obj.ougroup] = str + ",'"+obj.de+"-"+obj.coc +"'";            
         }
-        
         
         return map;
     },[])
@@ -401,7 +399,7 @@ function sqlQueryBuilder(mapping,selectedOU,selectedOUGroupUID,startDate,endDate
                                                    + subQuery
                                                    + ` )main group by pivot,pivotname order by pivotname!=`+selectedOUNameWithSuffix+` desc ,pivotname`
 
-        console.log(query)
+    //    console.log(query)
         
         return query;
 

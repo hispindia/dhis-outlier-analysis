@@ -1,5 +1,5 @@
 import React,{propTypes} from 'react';
-import reportGenerator from '../report-generator';
+import reportGenerator from '../report-generatorX';
 import api from '../lib/dhis2API';
 
 export function ReportSelection(props){
@@ -53,8 +53,7 @@ export function ReportSelection(props){
             instance.setState(state);
             return
         }
-        
-        
+                
         if (state.selectedReport.excelTemplate){
             getReport();
         }else{

@@ -26,12 +26,10 @@ window.onload = function(){
     select.selected = function(callback){
         debugger
     }
-  
-    
+      
     ReactDOM.render(<TreeComponent  onSelectCallback={select}/>, document.getElementById('treeComponent'));
 
-   
-  
+     
     var dsService = new api.dataStoreService('XLReport_Metadata');
     var ouService = new api.organisationUnitService();
     var peService = new api.periodService();
@@ -54,7 +52,10 @@ window.onload = function(){
             }
         }/>, document.getElementById('form'));
 
-    })
+    }).catch(reason => {
+        // TODO
+        ReactDOM.render(<div>No reports exist.</div>,document.getElementById('form'))
+    });
 
 }
 
