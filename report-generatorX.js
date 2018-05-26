@@ -29,16 +29,37 @@ function report(state){
         }
         return list;        
     },[])
-    
+
+    var decocListCommaSeparated = mapping.decoc.reduce((str,obj) => {
+        if (str==""){
+            str = obj.de+"-"+obj.coc +"'"
+        }else{
+            str = str+ ",'"+obj.de+"-"+obj.coc +"'" ;
+        }
+        return str;
+    },"")
+
+    var deListCommaSeparated = mapping.decoc.reduce((str,obj) => {
+        if (str==""){
+            str = "'"+obj.de+"'"
+        }else{
+            str = str+ ",'"+obj.de+"'" ;
+        }
+        return str;
+    },"")
+
     var reportParams = {
         selectedOUUID : state.selectedOU.id,
         selectedOUGroupUID : state.selectedOUGroup,
         aggregationType : state.aggregationType,
         startdate : state.startPe,
         enddate : state.endPe,
+        ptype : "Monthly",
         attributeOptionComboId : 15,
         ouGroupWiseDecocStringMap : ouGroupWiseDecocStringMap,
-        ouGroupUIDKeys : ouGroupUIDKeys
+        ouGroupUIDKeys : ouGroupUIDKeys,
+        decocListCommaSeparated : decocListCommaSeparated,
+        deListCommaSeparated : deListCommaSeparated
         
     }
  /*   var sqlQueryBuilderParams = {

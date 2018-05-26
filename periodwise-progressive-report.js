@@ -1,47 +1,70 @@
 import sqlQueryBuilder from './sql-query-builderX';
 import api from './dhis2API';
 
-function periodWiseProgressiveReport(params){
+function periodWiseProgressiveReport(params,callback){
 
-    
+    const SQLVIEWPREFIX = "XL_REPORT_";
     var sourceIDQuery = __getSourceIDQuery(params);
-    var sqlViewTemplate =
-        {
-            "name": "999999_XLReport_"+Math.random(1),
-            "sqlQuery": sourceIDQuery,
-            "displayName": "temp",
-            "description": "temp",
-            "type": "QUERY"
+    var sqlViewService = new api.sqlViewService();
+
+    sqlViewService.dip(SQLVIEWPREFIX,sourceIDQuery, doMainQuery);
+    
+    function doMainQuery(error,response,body){
+        if (error){
+
         }
 
-    console.log(sourceIDQuery)
-    var sqlViewService = new api.sqlViewService();
-    sqlViewService.create(sqlViewTemplate,function(error,response,body){
-        var uid = body.response.uid;
-        
-        sqlViewService.getData(uid,function(error,response,body){
-            
-            /*      if (params.selectedOUGroup!="-1"){
-                    if (body.rows[0] == ""){
-                    alert(params.selectedOU.name+" has no facilities in the selected group");
-                    callback()
-                    return;
-                    }
-                    }
-            */    
-            doMainQuery(body,callback)
-            
-            sqlViewService.remove(uid,function(error,response,body){
-                if (error){
-                    console.log("Could not delete SQLView"+error)
-                }
-            })
-        })
-        
-    })
+        var ouGroupWiseSourceIDs = JSON.parse(body.rows[0]);
+        var mainQ = __getMainQuery(params,ouGroupWiseSourceIDs);
+         
+        debugger
+    }
+}
+
+function __getMainQuery(params,ouGroupWiseSourceIDs){
+    
+    var ouGroupIDWiseSourceIDs = ouGroupWiseSourceIDs.reduce((map,obj)=>{
+        if (!obj.sourceids){
+            map[obj.ougroup] = '0';            
+        }else{
+            map[obj.ougroup] = obj.sourceids;
+        }
+        return map;
+    },[])
+
+    var qb = new (new sqlQueryBuilder()).
+        periodWise.
+        main(params.startdate,
+             params.enddate,
+             params.ptype,
+             params.attributeOptionComboId,
+             params.ouGroupWiseDecocStringMap,
+             params.ouGroupUIDKeys,
+             params.decocListCommaSeparated,
+             params.deListCommaSeparated,
+             ouGroupWiseSourceIDs
+            );
     debugger
-    
-    
+
+    switch(params.selectedOUGroupUID){
+        
+    case "-1" : // no group
+        if (params.aggregationType == "use_captured"){
+            return qb.makeMainQuery(); 
+        }
+        else if (params.aggregationType == "agg_descendants"){
+            return getAggDescendants();
+        }
+        break
+        
+    default : // group case
+        if (params.aggregationType == "use_captured"){
+            return getOUGroupUseCaptured()
+        }
+        else if (params.aggregationType == "agg_descendants"){
+            return getOUGroupAggDescendants();
+        }
+    }
 
     
 }
