@@ -1,5 +1,6 @@
 import sqlQueryBuilder from './sql-query-builderX';
 import api from './dhis2API';
+import excelBuilder from './excel-builder.js';
 
 function periodWiseProgressiveReport(params,callback){
 
@@ -16,19 +17,27 @@ function periodWiseProgressiveReport(params,callback){
 
         var ouGroupWiseSourceIDs = JSON.parse(body.rows[0]);
         var mainQ = __getMainQuery(params,ouGroupWiseSourceIDs);
-         
+
+        sqlViewService.dip(SQLVIEWPREFIX,mainQ, function(error,response,body){
+            if (error){
+
+            }
+
+            new excelBuilder(params.mapping,body)
+        });
+
         debugger
     }
 }
 
 function __getMainQuery(params,ouGroupWiseSourceIDs){
     
-    var ouGroupIDWiseSourceIDs = ouGroupWiseSourceIDs.reduce((map,obj)=>{
-        if (!obj.sourceids){
-            map[obj.ougroup] = '0';            
-        }else{
+    ouGroupWiseSourceIDs = ouGroupWiseSourceIDs.reduce((map,obj)=>{
+        //if (!obj.sourceids){
+          //  map[obj.ougroup] = '0';            
+        //}else{
             map[obj.ougroup] = obj.sourceids;
-        }
+        //}
         return map;
     },[])
 
@@ -40,11 +49,10 @@ function __getMainQuery(params,ouGroupWiseSourceIDs){
              params.attributeOptionComboId,
              params.ouGroupWiseDecocStringMap,
              params.ouGroupUIDKeys,
-             params.decocListCommaSeparated,
-             params.deListCommaSeparated,
+             params.ouGroupWiseDeListCommaSeparated,
              ouGroupWiseSourceIDs
             );
-    debugger
+    
 
     switch(params.selectedOUGroupUID){
         
@@ -53,7 +61,7 @@ function __getMainQuery(params,ouGroupWiseSourceIDs){
             return qb.makeMainQuery(); 
         }
         else if (params.aggregationType == "agg_descendants"){
-            return getAggDescendants();
+            return qb.makeMainQuery();
         }
         break
         
@@ -82,7 +90,11 @@ function __getSourceIDQuery(params){
                                      params.ouGroupUIDKeys); 
         }
         else if (params.aggregationType == "agg_descendants"){
-            return getAggDescendants();
+            return qb.
+                periodWise.
+                sourceid.
+                makeGenAggregatedQuery(params.selectedOUUID,
+                                       params.ouGroupUIDKeys); 
         }
         break
         

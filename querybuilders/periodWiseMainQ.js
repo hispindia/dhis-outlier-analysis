@@ -6,37 +6,39 @@ function periodWiseMainQ(startdate,
                          attroptioncombo,
                          ouGroupWiseDecocStringMap,
                          ouGroupUIDKeys,
-                         decocListCommaSeparated,
-                         deListCommaSeparated,
+                         ouGroupWiseDeListCommaSeparated,
                          ouGroupWiseSourceIDs
                          ){
-
-
-
     
     this.makeMainQuery = function(){
-        debugger
-
-        ouGroupUIDKeys.map(key => {
-            var Q = getQ()
-
-        })
-        debugger
         
+        
+        var Q = ouGroupUIDKeys.map(key => {
+            return getQ(key)
+        })
 
+        Q.push( getQ('nogroup') );
+        Q = queries.unionize(Q)
+        Q = queries.jsonizeKeyValue(Q)        
+        Q = queries.unionizeAll([Q,
+                                queries.getDateRangeQ(startdate,
+                                                      enddate,
+                                                      ptype)]);
+        Q = queries.jsonize(Q);
+      
         return Q;
     }
 
-    function getQ(decocStr,deList){
+    function getQ(key){
         return queries.getPeriodSelectQ() +
             queries.getInnerJoinPePtDeCoc() +
             queries.getFiltersPePtDateDeCocAttrOptionValSource(startdate,
                                                                enddate,
                                                                ptype,
                                                                attroptioncombo,
-                                                               sourceids,
-                                                               deListCommaSeprated,
-                                                               decocStr) +
+                                                               ouGroupWiseSourceIDs[key],
+                                                               ouGroupWiseDeListCommaSeparated[key],
+                                                               ouGroupWiseDecocStringMap[key]) +
             queries.getPeriodGroupBy();
     }
 }

@@ -10,8 +10,8 @@ function report(state){
     var reportName = state.selectedReport.name + "_"+ state.selectedOU.name+ "_" + state.startPeText+"To"+state.endPeText;    
     var selectedOUName = state.selectedOU.name;
     var mapping = JSON.parse(state.selectedReport.mapping);
-    var ouGroupWiseDecocStringMap = mapping.decoc.reduce((map,obj) => {
-        
+
+    var ouGroupWiseDecocStringMap = mapping.decoc.reduce((map,obj) => {        
         var str = map[obj.ougroup];
         if (!str) {
             map[obj.ougroup] = "'"+obj.de+"-"+obj.coc+"'"
@@ -30,24 +30,19 @@ function report(state){
         return list;        
     },[])
 
-    var decocListCommaSeparated = mapping.decoc.reduce((str,obj) => {
-        if (str==""){
-            str = obj.de+"-"+obj.coc +"'"
-        }else{
-            str = str+ ",'"+obj.de+"-"+obj.coc +"'" ;
-        }
-        return str;
-    },"")
 
-    var deListCommaSeparated = mapping.decoc.reduce((str,obj) => {
-        if (str==""){
-            str = "'"+obj.de+"'"
+    var ouGroupWiseDeListCommaSeparated = mapping.decoc.reduce((map,obj) => {        
+        var str = map[obj.ougroup];
+        if (!str) {
+            map[obj.ougroup] = "'"+obj.de+"'";
         }else{
-            str = str+ ",'"+obj.de+"'" ;
+            map[obj.ougroup] = str + ",'"+obj.de +"'";            
         }
-        return str;
-    },"")
+        
+        return map;
+    },[])
 
+    
     var reportParams = {
         selectedOUUID : state.selectedOU.id,
         selectedOUGroupUID : state.selectedOUGroup,
@@ -58,8 +53,8 @@ function report(state){
         attributeOptionComboId : 15,
         ouGroupWiseDecocStringMap : ouGroupWiseDecocStringMap,
         ouGroupUIDKeys : ouGroupUIDKeys,
-        decocListCommaSeparated : decocListCommaSeparated,
-        deListCommaSeparated : deListCommaSeparated
+        ouGroupWiseDeListCommaSeparated : ouGroupWiseDeListCommaSeparated,
+        mapping : mapping
         
     }
  /*   var sqlQueryBuilderParams = {
