@@ -23,10 +23,16 @@ function periodWiseProgressiveReport(params,callback){
 
             }
 
-            new excelBuilder(params.mapping,body)
+            new excelBuilder(params.mapping,
+                             body,
+                             params.excelTemplate,
+                             params.reportName,
+                             params.selectedOUName,
+                             params.startdateText,
+                             params.enddateText,
+                             callback)
         });
 
-        debugger
     }
 }
 
@@ -67,10 +73,10 @@ function __getMainQuery(params,ouGroupWiseSourceIDs){
         
     default : // group case
         if (params.aggregationType == "use_captured"){
-            return getOUGroupUseCaptured()
+            return qb.makeMainQuery(); 
         }
         else if (params.aggregationType == "agg_descendants"){
-            return getOUGroupAggDescendants();
+            return qb.makeMainQuery(); 
         }
     }
 
@@ -100,10 +106,20 @@ function __getSourceIDQuery(params){
         
     default : // group case
         if (params.aggregationType == "use_captured"){
-            return getOUGroupUseCaptured()
+            return qb.
+                periodWise.
+                sourceid.
+                makeOuGroupUseCapturedQuery(params.selectedOUUID,
+                                            params.ouGroupUIDKeys,
+                                            params.selectedOUGroupUID)
         }
         else if (params.aggregationType == "agg_descendants"){
-            return getOUGroupAggDescendants();
+        return qb.
+                periodWise.
+                sourceid.
+                makeOuGroupGenAgrgegatedQuery(params.selectedOUUID,
+                                            params.ouGroupUIDKeys,
+                                            params.selectedOUGroupUID)
         }
     }
 

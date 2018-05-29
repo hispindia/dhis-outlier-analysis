@@ -45,6 +45,7 @@ function report(state){
     
     var reportParams = {
         selectedOUUID : state.selectedOU.id,
+        selectedOUName: state.selectedOU.name,
         selectedOUGroupUID : state.selectedOUGroup,
         aggregationType : state.aggregationType,
         startdate : state.startPe,
@@ -54,7 +55,11 @@ function report(state){
         ouGroupWiseDecocStringMap : ouGroupWiseDecocStringMap,
         ouGroupUIDKeys : ouGroupUIDKeys,
         ouGroupWiseDeListCommaSeparated : ouGroupWiseDeListCommaSeparated,
-        mapping : mapping
+        mapping : mapping,
+        excelTemplate:state.selectedReport.excelTemplate,
+        reportName:state.selectedReport.name + "_"+ state.selectedOU.name+ "_" + state.startPeText+"To"+state.endPeText,
+        startdateText : state.startPeText,
+        enddateText : state.endPeText
         
     }
  /*   var sqlQueryBuilderParams = {
@@ -76,7 +81,8 @@ function report(state){
 
         switch(state.selectedReport.reportType){
         case 'FacilityANDPeriodWiseProgressive' :
-            new periodWiseProgressiveReport(reportParams);
+            new periodWiseProgressiveReport(reportParams,
+                                            callback);
             break;
 
         case 'FacilityWiseProgressive' :

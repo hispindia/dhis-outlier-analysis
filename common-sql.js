@@ -7,16 +7,11 @@ function Queries(){
         where uid in (${uids})`
     }
 
-    this.getOrgUnitDescendantsByUID = function(uid){
-
-        
-    }
-
-    this.getPeriodSelectQ = function(){
+    this.getPeriodSelectQ = function(key){
 
         return `
-        select to_char(pe.startdate , 'Mon yyyy')as pivot,
-        concat(de.uid,'-',coc.uid) as decoc ,
+        select to_char(pe.startdate , 'yyyy-mm-dd')as pivot,
+        concat('${key}','-',de.uid,'-',coc.uid) as decoc ,
         sum(dv.value :: float) as value
         from datavalue dv
         `
@@ -69,7 +64,7 @@ function Queries(){
         group by ougroup`;
     }
 
-     function getOUDescendants (selectedOU){
+    function getOUDescendants (selectedOU){
         return `with recursive org_units as (
 	    select ou.organisationunitid
 	    from organisationunit ou
@@ -92,6 +87,22 @@ function Queries(){
         )ou`;
     }
 
+    this.getNoGroupSelectedOUDescendantAndOUGroup = function(selectedOU,ouGroupUID){
+        return `select 'nogroup' as ougroup,string_agg(ou.organisationunitid::text,',') as sourceids
+        from organisationunit ou
+        where ou.organisationunitid  in (${getOUDescendants(selectedOU)})
+        and ou.organisationunitid in (${getOUGroupMembersIdByOUGroup(ouGroupUID)})
+        group by ougroup`;
+    }
+
+    this.getNoGroupSelectedOUDescendantAndOUGroupDescendants = function(selectedOU,ouGroupUID){
+        return `select 'nogroup' as ougroup,string_agg(ou.organisationunitid::text,',') as sourceids
+        from organisationunit ou
+        where ou.organisationunitid  in (${getOUDescendants(selectedOU)})
+        and ou.organisationunitid in (${getOUGroupMembersIdByOUGroupDescendants(ouGroupUID)})
+        group by ougroup`;
+    }
+    
     this.getOUGroupMembersFilteredBySelectedOUDescendants = function(selectedOU,ouGroupKey,ouGroupUIDs){
         
         return `select ${ouGroupKey} as ougroup,string_agg(ougm.organisationunitid::text,',') as sourceids
@@ -115,9 +126,65 @@ function Queries(){
                                          where ou.uid in( ${selectedOU})))
         group by ougroup`;
         
+    }
+
+    this.getOUGroupMembersFilteredBySelectedOUDescendantsAndOUGroup = function(selectedOU,
+                                                                               ouGroupKey,
+                                                                               ouGroupUIDs,
+                                                                               selectedOUGroupUID){
+
+        return `select ${ouGroupKey} as ougroup,string_agg(ougm.organisationunitid::text,',') as sourceids
+        from orgunitgroupmembers ougm
+        inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
+        where oug.uid in (${ouGroupUIDs})
+        and ougm.organisationunitid in ( ${getOUDescendants(selectedOU)} )
+        and ougm.organisationunitid in (${getOUGroupMembersIdByOUGroup(selectedOUGroupUID)})
+        group by ougroup`;
+        
         
     }
 
+    this.getOUGroupMembersFilteredBySelectedOUDescendantsAndOUGroupDescendants = function(selectedOU,
+                                                                                          ouGroupKey,
+                                                                                          ouGroupUIDs,
+                                                                                          selectedOUGroupUID){
+
+        return `select ${ouGroupKey} as ougroup,string_agg(ougm.organisationunitid::text,',') as sourceids
+        from orgunitgroupmembers ougm
+        inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
+        where oug.uid in (${ouGroupUIDs})
+        and ougm.organisationunitid in ( ${getOUDescendants(selectedOU)} )
+        and ougm.organisationunitid in (${getOUGroupMembersIdByOUGroupDescendants(selectedOUGroupUID)})
+        group by ougroup`;
+        
+        
+    }
+    function getOUGroupMembersIdByOUGroup(ouGroupUIDs){
+        return `select ougm.organisationunitid        
+        from orgunitgroupmembers ougm
+        inner join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
+        where oug.uid in ('${ouGroupUIDs}')`
+    }
+
+    function getOUGroupMembersIdByOUGroupDescendants(ouGroupUIDs){
+        return  `with recursive org_units as (
+            select ou.organisationunitid
+            from orgunitgroupmembers ougm
+            join organisationunit ou on ou.organisationunitid =  ougm.organisationunitid
+            join orgunitgroup oug on oug.orgunitgroupid = ougm.orgunitgroupid
+            where oug.uid in ('${ouGroupUIDs}')
+            
+            union all
+            
+            select ch.organisationunitid
+            from organisationunit ch 
+            join org_units p on ch.parentid = p.organisationunitid
+            
+        )
+        select organisationunitid from org_units` 
+        
+    }
+    
     this.getDateRangeQ = function(startdate,enddate,ptype){
 
         var format = "", interval = "", formatPP="";

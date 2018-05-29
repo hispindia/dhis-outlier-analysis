@@ -30,7 +30,7 @@ function periodWiseMainQ(startdate,
     }
 
     function getQ(key){
-        return queries.getPeriodSelectQ() +
+        return queries.getPeriodSelectQ(key) +
             queries.getInnerJoinPePtDeCoc() +
             queries.getFiltersPePtDateDeCocAttrOptionValSource(startdate,
                                                                enddate,

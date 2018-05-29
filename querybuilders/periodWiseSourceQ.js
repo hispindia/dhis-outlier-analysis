@@ -39,9 +39,58 @@ function periodWiseSourceQ(){
         Q = queries.jsonize(Q)
         console.log(Q)
         return Q;
-
     }
-    
+
+    _.makeOuGroupUseCapturedQuery = function(selectedOUUID,
+                                             ouGroupUIDKeys,
+                                             selectedOUGroup){
+        
+        selectedOUUID = `'${selectedOUUID}'`;
+        
+        var Q = ouGroupUIDKeys.map(key =>{
+            var ouGroupUIDsCommaSeprated = "'"+key.replace(/-/g,"','") + "'"
+            key = `'${key}'`;            
+            return queries.getOUGroupMembersFilteredBySelectedOUDescendantsAndOUGroup(selectedOUUID,
+                                                                                      key,
+                                                                                      ouGroupUIDsCommaSeprated,
+                                                                                      selectedOUGroup
+                                                                                     );
+        });
+
+        Q.push( queries.getNoGroupSelectedOUDescendantAndOUGroup(selectedOUUID,
+                                                                 selectedOUGroup));
+        Q = queries.unionize(Q)
+        Q = queries.jsonize(Q)
+        console.log(Q)
+        return Q;
+    }
+
+    _.makeOuGroupGenAgrgegatedQuery = function(selectedOUUID,
+                                             ouGroupUIDKeys,
+                                             selectedOUGroup){
+        
+        selectedOUUID = `'${selectedOUUID}'`;
+        
+        var Q = ouGroupUIDKeys.map(key =>{
+            var ouGroupUIDsCommaSeprated = "'"+key.replace(/-/g,"','") + "'"
+            key = `'${key}'`;            
+            return queries.getOUGroupMembersFilteredBySelectedOUDescendantsAndOUGroupDescendants(selectedOUUID,
+                                                                                      key,
+                                                                                      ouGroupUIDsCommaSeprated,
+                                                                                      selectedOUGroup
+                                                                                     );
+        });
+
+        Q.push( queries.getNoGroupSelectedOUDescendantAndOUGroupDescendants(selectedOUUID,
+                                                                            selectedOUGroup));
+        Q = queries.unionize(Q)
+        Q = queries.jsonize(Q)
+        console.log(Q)
+        return Q;
+    }
+
+
+
     return _;
 }
 

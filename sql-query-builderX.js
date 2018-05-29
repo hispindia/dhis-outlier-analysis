@@ -7,11 +7,12 @@ function sqlQueryBuilder(params){
         sourceid :periodWiseSourceQ,
         main : periodWiseMainQ
     }
-    
-    this.makePeriodWiseGenerateAggregateSourceIdQ = function(selectedOUUID){        
-        return queries.getOrgUnitDescendantsByUID(`'${selectedOUUID}'`);
+
+  /*  this.OUWise = {
+        sourceid : OUWiseSourceQ,
+        main : OUWiseMainQ
     }
-    
+    */
 }
 
 module.exports = sqlQueryBuilder;
