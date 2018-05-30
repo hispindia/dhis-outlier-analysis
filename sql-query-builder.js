@@ -1,5 +1,7 @@
 import periodWiseSourceQ from './querybuilders/periodWiseSourceQ.js'
 import periodWiseMainQ from './querybuilders/periodWiseMainQ.js'
+import facilityWiseSourceQ from './querybuilders/facilityWiseSourceQ.js'
+import facilityWiseMainQ from './querybuilders/facilityWiseMainQ.js'
 
 function sqlQueryBuilder(params){
 
@@ -8,11 +10,12 @@ function sqlQueryBuilder(params){
         main : periodWiseMainQ
     }
 
-  /*  this.OUWise = {
-        sourceid : OUWiseSourceQ,
-        main : OUWiseMainQ
+    this.ouWise = {
+        sourceid : facilityWiseSourceQ,
+        main : facilityWiseMainQ
     }
-    */
+  
+    
 }
 
 module.exports = sqlQueryBuilder;

@@ -1,5 +1,5 @@
 import React,{propTypes} from 'react';
-import reportGenerator from '../report-generatorX';
+import reportGenerator from '../report-generator';
 import api from '../lib/dhis2API';
 
 export function ReportSelection(props){

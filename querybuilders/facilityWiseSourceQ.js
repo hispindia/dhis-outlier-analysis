@@ -1,45 +1,48 @@
 import queries from '../common-sql.js'
 
-function periodWiseSourceQ(selectedOUUID,
-                           ouGroupUIDKeys,
-                           selectedOUGroup){
+function facilityWiseSourceQ(selectedOUUID,
+                             ouGroupUIDKeys,
+                             selectedOUGroup){
     
     this.makeUseCapturedQuery = function(){
 
         var Q = ouGroupUIDKeys.map(key =>{
             var ouGroupUIDsCommaSeprated = "'"+key.replace(/-/g,"','") + "'"
             key = `'${key}'`;            
-            return queries.getOUGroupMembersFilteredBySelectedOU(selectedOUUID,
-                                                                 key,
-                                                                 ouGroupUIDsCommaSeprated);
+            return queries.
+                getOUGroupMembersFilteredBySelectedOUChildren(selectedOUUID,
+                                                              key,
+                                                              ouGroupUIDsCommaSeprated);
         });
 
-        Q.push( queries.getNoGroupSelectedOU(selectedOUUID));
+        Q.push( queries.getNoGroupSelectedOUChildren(selectedOUUID));
         Q = queries.unionize(Q)
         Q = queries.jsonize(Q)
         console.log(Q)
         return Q;
     }
 
-    this.makeGenAggregatedQuery = function(){
 
+     this.makeGenAggregatedQuery = function(){
 
-        var Q = ouGroupUIDKeys.map(key =>{
-            var ouGroupUIDsCommaSeprated = "'"+key.replace(/-/g,"','") + "'"
-            key = `'${key}'`;            
-            return queries.getOUGroupMembersFilteredBySelectedOUDescendants(selectedOUUID,
-                                                                            key,
-                                                                            ouGroupUIDsCommaSeprated);
-        });
+         
+         var Q = ouGroupUIDKeys.map(key =>{
+             var ouGroupUIDsCommaSeprated = "'"+key.replace(/-/g,"','") + "'"
+             key = `'${key}'`;            
+             return queries.
+                 getOUGroupMembersFilteredBySelectedOUChildrenDescendants(selectedOUUID,
+                                                                          key,
+                                                                          ouGroupUIDsCommaSeprated);
+         });
+         
+         Q.push( queries.getNoGroupSelectedOUDescendants(selectedOUUID));
+         Q = queries.unionize(Q)
+         Q = queries.jsonize(Q)
+         console.log(Q)
+         return Q;
+     }
 
-        Q.push( queries.getNoGroupSelectedOUDescendants(selectedOUUID));
-        Q = queries.unionize(Q)
-        Q = queries.jsonize(Q)
-        console.log(Q)
-        return Q;
-    }
-
-    this.makeOuGroupUseCapturedQuery = function(){
+     this.makeOuGroupUseCapturedQuery = function(){
         
         
         var Q = ouGroupUIDKeys.map(key =>{
@@ -80,7 +83,7 @@ function periodWiseSourceQ(selectedOUUID,
         console.log(Q)
         return Q;
     }
-
 }
 
-module.exports =  periodWiseSourceQ;
+
+module.exports = facilityWiseSourceQ;

@@ -2,7 +2,7 @@ import sqlQueryBuilder from './sql-query-builder';
 import api from './dhis2API';
 import excelBuilder from './excel-builder.js';
 
-function periodWiseProgressiveReport(params,callback){
+function ouWiseProgressiveReport(params,callback){
 
     const SQLVIEWPREFIX = "XL_REPORT_";
     var sourceIDQuery = __getSourceIDQuery(params);
@@ -42,30 +42,33 @@ function periodWiseProgressiveReport(params,callback){
         });
 
     }
+
 }
+
 
 function __getMainQuery(params,ouGroupWiseSourceIDs){
     
     ouGroupWiseSourceIDs = ouGroupWiseSourceIDs.reduce((map,obj)=>{
-        //if (!obj.sourceids){
-          //  map[obj.ougroup] = '0';            
-        //}else{
-            map[obj.ougroup] = obj.sourceids;
-        //}
+        map[obj.ougroup] = obj.sourceids;
         return map;
     },[])
 
     var qb = new (new sqlQueryBuilder()).
-        periodWise.
-        main(params.startdate,
-             params.enddate,
-             params.ptype,
-             params.attributeOptionComboId,
-             params.ouGroupWiseDecocStringMap,
-             params.ouGroupUIDKeys,
-             params.ouGroupWiseDeListCommaSeparated,
-             ouGroupWiseSourceIDs
-            );
+        ouWise.
+        main(
+            params.selectedOUUID,
+            params.selectedOUName,
+            params.selectedOULevel,
+            params.selectedOUGroupUID,
+            params.startdate,
+            params.enddate,
+            params.ptype,
+            params.attributeOptionComboId,
+            params.ouGroupWiseDecocStringMap,
+            params.ouGroupUIDKeys,
+            params.ouGroupWiseDeListCommaSeparated,
+            ouGroupWiseSourceIDs
+        );
     
 
     switch(params.selectedOUGroupUID){
@@ -81,10 +84,10 @@ function __getMainQuery(params,ouGroupWiseSourceIDs){
         
     default : // group case
         if (params.aggregationType == "use_captured"){
-            return qb.makeMainQuery(); 
+            return qb.makeGroupMainQuery(); 
         }
         else if (params.aggregationType == "agg_descendants"){
-            return qb.makeMainQuery(); 
+            return qb.makeGroupMainQuery(); 
         }
     }
 
@@ -93,11 +96,12 @@ function __getMainQuery(params,ouGroupWiseSourceIDs){
 
 function __getSourceIDQuery(params){
     var qb = new (new sqlQueryBuilder()).
-        periodWise.
+        ouWise.
         sourceid(params.selectedOUUID,
                  params.ouGroupUIDKeys,
                  params.selectedOUGroupUID
                 );
+    
 
     switch(params.selectedOUGroupUID){
         
@@ -118,7 +122,7 @@ function __getSourceIDQuery(params){
                 makeOuGroupUseCapturedQuery()
         }
         else if (params.aggregationType == "agg_descendants"){
-        return qb.
+            return qb.
                 makeOuGroupGenAgrgegatedQuery()
         }
     }
@@ -126,4 +130,4 @@ function __getSourceIDQuery(params){
 
 }
 
-module.exports = periodWiseProgressiveReport
+module.exports = ouWiseProgressiveReport;
