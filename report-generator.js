@@ -1,15 +1,9 @@
-import api from './dhis2API';
-import XLSX from 'xlsx-populate';
-import sqlQueryBuilder from './sql-query-builder';
-import fileOps from './fileOperation';
 import periodWiseProgressiveReport from './periodwise-progressive-report';
 import ouWiseProgressiveReport from './ouwise-progressive-report';
 
 function report(state){
-    var excelTemplate = state.selectedReport.excelTemplate;
-    var reportName = state.selectedReport.name + "_"+ state.selectedOU.name+ "_" + state.startPeText+"To"+state.endPeText;    
-    var selectedOUName = state.selectedOU.name;
-    var mapping = JSON.parse(state.selectedReport.mapping);
+
+    var mapping = state.selectedReport.mapping;
 
     var ouGroupWiseDecocStringMap = mapping.decoc.reduce((map,obj) => {        
         var str = map[obj.ougroup];
@@ -23,7 +17,6 @@ function report(state){
     },[])
 
     var ouGroupUIDKeys = Object.keys(ouGroupWiseDecocStringMap).reduce((list,key) =>{
-
         if (key != 'nogroup'){
             list.push(key);
         }
@@ -42,7 +35,6 @@ function report(state){
         return map;
     },[])
 
-    
     var reportParams = {
         selectedOUUID : state.selectedOU.id,
         selectedOUName: state.selectedOU.name,
@@ -67,20 +59,21 @@ function report(state){
     this.getReport = function(callback){
 
         switch(state.selectedReport.reportType){
-        case 'FacilityANDPeriodWiseProgressive' :
-          //  new periodWiseProgressiveReport(reportParams,
-            //                                callback);
+        case 'OUWiseProgressive' :
             new ouWiseProgressiveReport(reportParams,
                                         callback);
             
             break;
 
-        case 'FacilityWiseProgressive' :
-            new ouWiseProgressiveReport(reportParams,
-                                        callback);
+        case 'PeriodWiseProgressive' :
+            new periodWiseProgressiveReport(reportParams,
+                                            callback);
             break
 
-        default : return;
+        default :
+            alert(state.selectedReport.reportType+" report type is not yet supported")
+            callback()
+            return;
         }
         
     }
