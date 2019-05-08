@@ -2,9 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 
-import {ReportSelection} from './components/app';
+import {SelectionPanel} from './components/selection-panel';
 import {TreeComponent} from './lib/ous'
-import api from './dhis2API';
+import api from 'dhis2api';
 
 
 window.onload = function(){
@@ -29,19 +29,18 @@ window.onload = function(){
       
     ReactDOM.render(<TreeComponent  onSelectCallback={select}/>, document.getElementById('treeComponent'));
 
-     
-    var dsService = new api.dataStoreService('XLReport_Metadata');
+    var apiWrapper = new api.wrapper();
     var ouService = new api.organisationUnitService();
     var peService = new api.periodService();
     
-    var Preports = dsService.getAllKeyValues();
+    var Pds = apiWrapper.getObj("dataSets?fields=id,name&paging=false");
     var PouGroups = ouService.getOUGroups("id,name");
 
-    Promise.all([Preports,PouGroups]).then(function(values){
+    Promise.all([Pds,PouGroups]).then(function(values){
         
-        ReactDOM.render(<ReportSelection data ={
+        ReactDOM.render(<SelectionPanel data ={
             {
-                reports : values[0],
+                dataSets : values[0].dataSets,
                 ouGroups : values[1].organisationUnitGroups
             }
         }  services = {

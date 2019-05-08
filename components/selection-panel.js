@@ -1,46 +1,41 @@
 import React,{propTypes} from 'react';
 import reportGenerator from '../report-generator';
-import api from '../lib/dhis2API';
+import api from 'dhis2api';
+import moment from 'moment';
 
-export function ReportSelection(props){
-   
+export function SelectionPanel(props){
+    
     var instance = Object.create(React.Component.prototype);
     instance.props = props;
 
-    var keyToObjMap = props.data.reports.reduce((map,obj) =>{
+    var keyToObjMap = props.data.dataSets.reduce((map,obj) =>{
         map[obj.key] = obj;
         return map;
     },{});
     
 
     var state = {
-        selectedReport : "-1",
+        selectedDataSets : [],
         selectedReportKey : "-1",
-        reportList : [],
+        dataSetList : [],
         selectedOUGroup : "-1",
         selectedOU : "-1",
         periodList : [],
-        startPe : "-1",
-        startPeText : "",
-        endPe : "-1",
-        endPeText : "",
-        aggregationType : "use_captured",
+        startDate : moment().format("YYYY-MM-DD"),
+        endDate : moment().format("YYYY-MM-DD"),
         loading : false,
-        reportValidation:"",
-        startPeValidation:"",
-        endPeValidation:"",
         orgUnitValidation:""
         
     };
 
-    state.reportList = props.data.reports;
+    state.dataSetList = props.data.reports;
     props.services.ouSelectCallback.selected = function(ou){
 
         state.selectedOU = ou;
         state.orgUnitValidation = ""
         instance.setState(state);
     }
-                                   
+    
     
     instance.render = render;
 
@@ -53,7 +48,7 @@ export function ReportSelection(props){
             instance.setState(state);
             return
         }
-                
+        
         if (state.selectedReport.excelTemplate){
             getReport();
         }else{
@@ -65,7 +60,7 @@ export function ReportSelection(props){
             })
         }
         
-   
+        
 
         function getReport(){
             state.loading = true;
@@ -104,21 +99,19 @@ export function ReportSelection(props){
         return flag;
     }
     
-    function getReportOptions(reports){
+    function getDataSetOptions(objs){
 
-        var options = [
-                <option key="select_report" disabled value="-1"> -- select a report -- </option>
-                      ];
+        var options = [];
         
-        reports.forEach(function(report){
-            options.push(<option key = {report.key}  value={report.key} >{report.name}</option>);
+        objs.forEach(function(obj){
+            options.push(<option key = {obj.uid}  value={obj.uid} >{obj.name}</option>);
         });
         
         return options;
         
     }
 
-    function onReportChange(e){
+    function onDataSetChange(e){
         var reportKey = e.target.selectedOptions[0].value;
         
         var periodList = props.services.peService.getPeriods(keyToObjMap[reportKey].period);
@@ -132,7 +125,7 @@ export function ReportSelection(props){
     function getPeriodOptions(periodList){
 
         var options = [
-                <option key="select_period" disabled value="-1"> -- select period -- </option>
+            <option key="select_period" disabled value="-1"> -- select period -- </option>
         ];
         
         periodList.forEach(function(pe){
@@ -143,17 +136,6 @@ export function ReportSelection(props){
         
     }
 
-    function getOrgUnitGroupOptions(ougs){
-        var options = [
-                <option key="select_ougroup"  value="-1"> -- select a facility group -- </option>
-];
-        
-        ougs.forEach(function(oug){
-            options.push(<option key = {oug.id}  value={oug.id} >{oug.name}</option>);
-        });
-        
-        return options;
-    }
     
     function render(){
 
@@ -185,33 +167,57 @@ export function ReportSelection(props){
 
         
         return ( 
-                <form onSubmit={handleSubmit} className="formX">
-                <h3> Facility/Period  Wise Progressive Report </h3><hr></hr>
+            <form onSubmit={handleSubmit} className="formX">
+              <h3> Outlier Analysis </h3><hr></hr>
+
+              <div className="outerGrid">
+                <div className="innerGrid">
+                  <div>Select DataSet/s<span style={{"color":"red"}}> * </span> :
+                  </div>
+                  <div>
+                    <select multiple value={state.selectedDataSets} onChange={onDataSetChange} id="dataset">{getDataSetOptions(props.data.dataSets)}</select>
+                  </div>
+              </div>
+
+              <div className="innerGrid">
+                <div> Selected Facility<span style={{"color":"red"}}> * </span>  :</div>
+                <div> <input disabled  value={state.selectedOU.name}></input></div>
+              </div>
+
+              <div className="innerGrid">
+                <div> Select  Date<span style={{"color":"red"}}> * </span>  :</div>
+                <div> <input type="date" onChange = {onPeChange.bind(this,"startPe")} value = {state.startDate} id="startPe" /></div>
+              </div>
+
+              <div className="innerGrid">
+                <div>  <input type="submit" value="Find Ouliers" ></input>    </div>
+                <div>  <img style = {state.loading?{"display":"inline"} : {"display" : "none"}} src="./images/loader-circle.GIF" alt="loader.." height="32" width="32"></img></div>
+              </div>
+            </div>
             
                 <table className="formX">
                 <tbody>
-                <tr>
-                <td>  Select Report<span style={{"color":"red"}}> * </span> : </td><td><select  value={state.selectedReportKey} onChange={onReportChange} id="report">{getReportOptions(props.data.reports)}</select><br></br>                <label key="reportValidation" ><i>{state.reportValidation}</i></label>
-                </td>
-                <td className="leftM">  Selected Facility<span style={{"color":"red"}}> * </span>  : </td><td><input disabled  value={state.selectedOU.name}></input><br></br><label key="orgUnitValidation" ><i>{state.orgUnitValidation}</i></label></td>
-                </tr>
-                <tr>
-                <td> Select Start Period<span style={{"color":"red"}}> * </span>  :  </td><td><select onChange = {onPeChange.bind(this,"startPe")} value = {state.startPe} id="startPe">{getPeriodOptions(state.periodList)}</select><br></br><label key="startPeValidation" ><i>{state.startPeValidation}</i></label>
-                </td>
-                <td className="leftM" > Select End Period<span style={{"color":"red"}}> * </span>  : </td><td><select onChange = {onPeChange.bind(this,"endPe")} value = {state.endPe} id="endPe">{getPeriodOptions(state.periodList)}</select><br></br><label key="startPeValidation" ><i>{state.endPeValidation}</i></label>
-                </td>
-                </tr>              
-                <tr>
-                <td> Select Org Unit Group : </td><td><select value={state.selectedOUGroup} onChange = {onOUGroupChange} id="ouGroup">{getOrgUnitGroupOptions(props.data.ouGroups)}</select></td>
-                <td className="leftM" > Select Aggregation Mode : </td><td><select onChange = {onAggregationTypeChange.bind(this)} value = { state.aggregationType  }  id="aggregationType"> <option key="use_captured"  value="use_captured" > Use Captured </option> <option key="agg_descendants" value="agg_descendants" > Generate Aggregated </option> </select></td>
-                </tr>
-                <tr></tr><tr></tr>
-                <tr><td>  <input type="submit" value="Generate Report" ></input></td>
-                <td> <img style = {state.loading?{"display":"inline"} : {"display" : "none"}} src="./images/loader-circle.GIF" alt="loader.." height="32" width="32"></img>  </td></tr>
+                  <tr rowSpan="3">
+                    <td >  Select DataSet/s<span style={{"color":"red"}}> * </span> : </td><td colSpan="2"><select multiple value={state.selectedDataSets} onChange={onDataSetChange} id="dataset">{getDataSetOptions(props.data.dataSets)}</select><br></br>                <label key="reportValidation" ><i>{state.reportValidation}</i></label>
+                                                                                                                   </td>
+                    
+                  </tr>
+                  
+                  <tr>
+                    <td className="">  Selected Facility<span style={{"color":"red"}}> * </span>  : </td><td><input disabled  value={state.selectedOU.name}></input><br></br><label key="orgUnitValidation" ><i>{state.orgUnitValidation}</i></label></td>
+                  </tr>
+                  <tr>
+                    <td>  Select  Date<span style={{"color":"red"}}> * </span>  :  </td><td><input type="date" onChange = {onPeChange.bind(this,"startPe")} value = {state.startDate} id="startPe" /><br></br></td>
+                    
+                  </tr>              
+                  
+                  <tr></tr><tr></tr>
+                  <tr><td>  <input type="submit" value="Find Ouliers" ></input></td>
+                    <td> <img style = {state.loading?{"display":"inline"} : {"display" : "none"}} src="./images/loader-circle.GIF" alt="loader.." height="32" width="32"></img>  </td></tr>
 
                 </tbody>                
-                </table>
-                </form>
+            </table>
+</form>
         )
     }
     
