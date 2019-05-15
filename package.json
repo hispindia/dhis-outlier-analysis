@@ -17,11 +17,12 @@
   },
   "homepage": "https://github.com/harsh-a1/react-skeleton#readme",
   "dependencies": {
-    "dhis2api": "^1.1.0",
+    "dhis2api": "^1.1.1",
     "moment": "^2.24.0",
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "webpack": "^4.2.0",
+    "xlsx": "^0.14.3",
     "xlsx-populate": "^1.14.0"
   },
   "devDependencies": {
