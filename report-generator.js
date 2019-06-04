@@ -16,11 +16,12 @@ function report(state){
         selectedOUUID : state.selectedOU.id,
         selectedOUName: state.selectedOU.name,
         selectedOULevel : state.selectedOU.level,
-        selDate : state.startDate,      
+        selectedReferencePeriod : state.referencePeriod,
+        selDate : state.selectedYear +'-' +state.selectedMonth+'-01',      
         ptype : "Monthly",
         attributeOptionComboId : 15,
         dsUIDs : dSListCommaSeparated,
-        reportName: "Outlier_"+ state.selectedOU.name + state.startDate
+        reportName: "Outlier_Report_"+ state.selectedOU.name + '_'+ state.selectedYear +'-' +state.selectedMonth+'-01'
         
     }
     
