@@ -33,7 +33,7 @@ window.onload = function(){
     var ouService = new api.organisationUnitService();
     var peService = new api.periodService();
     
-    var Pds = apiWrapper.getObj("dataSets?fields=id,name&paging=false");
+    var Pds = apiWrapper.getObj("dataSets?fields=id,name&paging=false&filter=attributeValues.attribute.id:eq:jCZsuzsDCDC&filter=attributeValues.value:eq:true");
     var PouGroups = ouService.getOUGroups("id,name");
 
     Promise.all([Pds,PouGroups]).then(function(values){

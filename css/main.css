@@ -27,7 +27,7 @@ button {
 
 .formX select,input {
 
-    width: 180px;
+    width: 250px;
     
 }
 
@@ -85,6 +85,6 @@ button {
 }
 
 #dataset{
-    width:100%;
+    width:98%;
     height:200px;
 }
