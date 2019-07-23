@@ -33,14 +33,30 @@ window.onload = function(){
     var ouService = new api.organisationUnitService();
     var peService = new api.periodService();
     
-    var Pds = apiWrapper.getObj("dataSets?fields=id,name&paging=false&filter=attributeValues.attribute.id:eq:jCZsuzsDCDC&filter=attributeValues.value:eq:true");
+    var Pds = apiWrapper.getObj("dataSets?fields=id,name,attributeValues[*]&paging=false&filter=attributeValues.attribute.id:eq:ONsFokn0mpz&filter=attributeValues.value:eq:true");
     var PouGroups = ouService.getOUGroups("id,name");
 
     Promise.all([Pds,PouGroups]).then(function(values){
+
+        var ds = values[0].dataSets;
+
+        ds = ds.reduce(function(list,obj){
+            for (var key in obj.attributeValues){
+                var av = obj.attributeValues[key];
+
+                if (av.attribute.id == 'ONsFokn0mpz'){
+                    if (av.value == 'true'){
+                        list.push(obj);
+                    }
+                }
+            }
+            
+            return list;
+        },[]);
         
         ReactDOM.render(<SelectionPanel data ={
             {
-                dataSets : values[0].dataSets,
+                dataSets : ds,
                 ouGroups : values[1].organisationUnitGroups
             }
         }  services = {
