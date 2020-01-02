@@ -26,7 +26,8 @@ export function SelectionPanel(props){
         selectedMonth : moment().format("MM"),
         loading : false,
         orgUnitValidation:"",
-        selectedDate : moment().format("MMMM-YYYY")
+        selectedDate : moment().format("MMMM-YYYY"),
+        errorMessage : ""
         
     };
 
@@ -51,10 +52,14 @@ export function SelectionPanel(props){
             return
         }
         
-        
+        state.errorMessage = "";
         state.loading = true;
         instance.setState(state);
-        new reportGenerator(Object.assign({},state)).getReport(function(){
+        new reportGenerator(Object.assign({},state)).getReport(function(error,message){
+            if (error){
+                state.errorMessage = message;
+            }
+            
             state.loading = false;
             instance.setState(state);
         });
@@ -169,6 +174,7 @@ export function SelectionPanel(props){
 
               <tr>
                 <td>  Select Year<span style={{"color":"red"}}> * </span>  :  </td><td><select value={state.selectedYear} onChange={onSelectChange.bind(null,'selectedYear')} className= "" id="yearsel">
+                <option key="2020" value="2020">2020</option>
                 <option key="2019" value="2019">2019</option>
                 <option key="2018" value="2018">2018</option>               
                 <option key="2017" value="2017">2017</option>
@@ -185,7 +191,10 @@ export function SelectionPanel(props){
                <tr> <td colSpan="2"> <div style = {state.loading?{"display":"inline"} : {"display" : "none"}}><img  src="./images/loader-circle.GIF" alt="loading.." height="32" width="32"></img> This will take a few minutes..Please wait</div> </td></tr>
 
                 </tbody>                
-            </table>
+                </table>
+                <div>
+                <label>{state.errorMessage}</label>
+            </div>
 </form>
         )
     }

@@ -22,8 +22,8 @@ function outlierReport(param,
         }
         
         if (!body.listGrid.rows[0][0]){
-            alert("No Outliers Found!")
-            callback();
+            //alert("No Outliers Found!")
+            callback(true,"No Outliers Found!");
             return;
         }
 
@@ -92,24 +92,30 @@ function outlierReport(param,
 	--	count(dv.value::float) as count,
 	--	string_agg(dv.value,'-') as vals,
 		stddev(dv.value::float) as std
-		from datavalue dv
-		inner join datasetmembers dsm on dsm.dataelementid = dv.dataelementid
-		inner join dataelement de on de.dataelementid = dsm.dataelementid
-		inner join dataset ds on ds.datasetid = dsm.datasetid	
-		inner join period pe on pe.periodid = dv.periodid
-		inner join periodtype pt on pt.periodtypeid = pe.periodtypeid
-		inner join categoryoptioncombo coc on dv.categoryoptioncomboid = coc.categoryoptioncomboid
-		inner join _orgunitstructure ous on ous.organisationunitid = dv.sourceid
-		where pe.startdate between date('${selDate}') - interval '${selectedReferencePeriod} months' and date('${selDate}') and pt.name='Monthly' 
-		and de.valueType in ('NUMBER','INTEGER')
+		from datavalue dv		
+		where dv.dataelementid in (
+					select de.dataelementid 
+					from dataelement de
+					inner join datasetelement dsm on dsm.dataelementid = de.dataelementid
+					inner join dataset ds on ds.datasetid = dsm.datasetid	
+        				where ds.uid in (${dsUIDs}) and de.valueType in ('NUMBER','INTEGER')
+					)  
                 and dv.sourceid in (select organisationunitid 
-                                    from _orgunitstructure ous 		
-                                    where ous.uidlevel${selectedOULevel} = '${selectedOUUID}')
-                and dv.sourceid in (select sourceid
-				    from datasetsource dss
-				    inner join dataset ds on ds.datasetid = dss.datasetid
-				    where ds.uid in (${dsUIDs}))                  
-                and ds.uid in (${dsUIDs})
+                            from _orgunitstructure ous 		
+                            where ous.uidlevel${selectedOULevel} = '${selectedOUUID}'
+                            and organisationunitid in (select sourceid
+		                                       from datasetsource dss
+		                                       inner join dataset ds on ds.datasetid = dss.datasetid
+  				                       where ds.uid in (${dsUIDs})
+                                                      )                  
+                            )
+		and dv.periodid in (
+				select periodid from period pe
+				inner join periodtype pt on pt.periodtypeid = pe.periodtypeid
+		                where pe.startdate between date('${selDate}') - interval '${selectedReferencePeriod} months' and date('${selDate}') and pt.name='Monthly' 
+				and pt.name='Monthly' 
+				)                            
+		and dv.attributeoptioncomboid = 15        
 		group by dv.sourceid,dv.dataelementid,dv.categoryoptioncomboid,dv.attributeoptioncomboid
 	    )
 	    select dv.*,mean,std,mean+3*sqrt(abs(mean)) u,mean-3*sqrt(abs(mean)) l -- , sum,count, vals
