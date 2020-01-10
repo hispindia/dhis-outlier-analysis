@@ -1,8 +1,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-
+import constants from './constants';
 
 import {SelectionPanel} from './components/selection-panel';
+import {WatchPanel} from './components/watch-panel';
+
 import {TreeComponent} from './lib/ous'
 import api from 'dhis2api';
 
@@ -33,31 +35,22 @@ window.onload = function(){
     var ouService = new api.organisationUnitService();
     var peService = new api.periodService();
     
-    var Pds = apiWrapper.getObj("dataSets?fields=id,name,attributeValues[*]&paging=false&filter=attributeValues.attribute.id:eq:ONsFokn0mpz&filter=attributeValues.value:eq:true");
-    var PouGroups = ouService.getOUGroups("id,name");
+    var Pprogram = apiWrapper.getObj(`programs/${constants.program_sms_inbox}?fields=id,name,programStages[id,name,programStageDataElements[id,name,dataElement[id,name,valueType]]]`);
 
-    Promise.all([Pds,PouGroups]).then(function(values){
+    var Puser = apiWrapper.getObj(`me`);
+    var PuserGroups = apiWrapper.getObj(`userGroups?paging=false`);
+    
+    //var PouGroups = ouService.getOUGroups("id,name");
 
-        var ds = values[0].dataSets;
+    Promise.all([Pprogram,Puser,PuserGroups]).then(function(values){
 
-        ds = ds.reduce(function(list,obj){
-            for (var key in obj.attributeValues){
-                var av = obj.attributeValues[key];
+        var program = values[0];
 
-                if (av.attribute.id == 'ONsFokn0mpz'){
-                    if (av.value == 'true'){
-                        list.push(obj);
-                    }
-                }
-            }
-            
-            return list;
-        },[]);
-        
-        ReactDOM.render(<SelectionPanel data ={
+        ReactDOM.render(<WatchPanel data ={
             {
-                dataSets : ds,
-                ouGroups : values[1].organisationUnitGroups
+                program : values[0],
+                me : values[1],
+                userGroups: values[2].userGroups
             }
         }  services = {
             {
