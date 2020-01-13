@@ -8,7 +8,8 @@ const apiWrapper = new api.wrapper();
 export function WatchPanel(props){
     const [alertMessages,setAlertMessages] = useState(null);
     const userGroupMap = props.data.userGroups.reduce(function(map,obj){
-        map[obj.id]=obj;
+        if (obj.code)
+            map[obj.code]=obj;
         return map;
     },[]);
     
@@ -50,8 +51,9 @@ export function WatchPanel(props){
         <th>Facility</th>
         <th>Date </th>
         <th>SMS</th>
+        <th>Status</th>
         <th>#</th>
-        <th>!</th>
+        <th>##</th>
 
         </tr>
     </thead>
