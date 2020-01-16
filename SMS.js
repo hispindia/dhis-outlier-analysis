@@ -26,18 +26,45 @@ function SMS(params){
 
         };
         
-        request.send(data);
+        request.send(JSON.stringify(data));
     }
     
-    this.send = function(msg,to,callback){
-        var data = {
-            username:params.username,
-            to:to,
-            message:msg
-        };
-            
-        post(JSON.stringify(data),callback);
+    this.send = function(msg,users,callback){
+     
 
+        function sendSMS(reference,index,msg,users,callback){
+            if (users.length==index){
+                callback(reference)
+                return
+            }
+            var data = {
+                to:users[index].phoneNumber,
+                message:msg
+            };
+            
+            post(data,function(error,response,body){
+                var res = {
+                    error : false,
+                    response : body,
+                    user : users[index]
+                }
+                
+                if (error){
+                    res.error = true;
+                }else if (body.error){
+                    res.error=true;
+                }
+
+                           
+                reference.push(res); 
+                sendSMS(reference,index+1,msg,users,callback)
+            })
+        }
+
+        sendSMS([],0,msg,users,function(reference){
+            callback(reference);
+        })
+        
     }    
 }
 

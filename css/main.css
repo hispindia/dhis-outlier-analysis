@@ -10,18 +10,37 @@
 
 }
 
-table tr {
-   border-left: 1px solid black;
+.report {
+
+ table-layout: auto;
+    font-size: 12px;
+    border-collapse: collapse;
+    width: 100%;
+    overflow: auto;
+    display: block;
+    height: auto;    
 }
 
-table td{
-    padding-bottom:20px;
+.report td,th{
+ border: 1px solid #ddd;
+    padding: 8px;
+    min-width:100px;
 }
+.report tbody:nth-child(odd) {background-color: #f2f2f2;}
 
+.reportq tbody:hover {background-color: #ddd;}
+
+.report th {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    text-align: center;
+    background-color: #3397B2;
+    color: white;
+    min-width:100px;
+}
 
 
 button {
-
     width : 180px;
 }
 
@@ -52,7 +71,7 @@ button {
 
 #main{
 
-    margin: 45px 10px 10px 320px;
+    margin: 35px 10px 10px 160px;
 }
 
 #header1{
@@ -87,4 +106,28 @@ button {
 #dataset{
     width:98%;
     height:200px;
+}
+
+.hidden{
+    display:none;
+}
+
+.refreshButton{
+    width:100px;
+    color: darkblue;
+}
+
+#verifyButton{
+    width:100px;
+    color: darkgreen;
+}
+
+#cancelButton{
+    width : 80px;
+    color:darkred;
+}
+
+#spamButton{
+    width : 80px;
+    color:red;
 }
