@@ -2,7 +2,7 @@ exports.program_sms_inbox = "XdaTA90q9m2";
 exports.de_message_type = "wQCA8pnlZhJ";
 exports.de_sms_content = "ZdO70WOVnVk";
 exports.de_identified_level = "wuU0oc3VNce";
-
+exports.de_comment = "BJw3aY0mqCK"
 exports.de_sms_sent_status = "lZ5gtaeN2vc";
 exports.de_recepeints = "isO4XHxr3y3";
 exports.de_sent_message="OxnavkmWYnt";

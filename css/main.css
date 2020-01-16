@@ -12,21 +12,22 @@
 
 .report {
 
- table-layout: auto;
+    table-layout: fixed;
     font-size: 12px;
     border-collapse: collapse;
     width: 100%;
     overflow: auto;
-    display: block;
-    height: auto;    
 }
 
 .report td,th{
- border: 1px solid #ddd;
+    border: 1px solid #ddd;
     padding: 8px;
     min-width:100px;
+    text-align: center;
+    word-wrap: break-word;
 }
 .report tbody:nth-child(odd) {background-color: #f2f2f2;}
+.report tbody:nth-child(even) {background-color: white;}
 
 .reportq tbody:hover {background-color: #ddd;}
 
@@ -38,6 +39,16 @@
     color: white;
     min-width:100px;
 }
+
+.verifyPanelDiv{
+    background-color: #f4f9f9;
+
+}
+
+.verifyPanelTable td{
+    border: 0px solid #ddd;
+}
+.verifyPanelTable tbody:nth-child(odd) {background-color: white;}
 
 
 button {
@@ -131,3 +142,4 @@ button {
     width : 80px;
     color:red;
 }
+

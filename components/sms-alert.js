@@ -18,7 +18,7 @@ export function SMSAlert(props){
     const [sentReceipt,setSentReceipt] = useState(getSentStatusDescription());
     const [loader,setLoader] = useState(false);
     const [expand,setExpand] = useState(false);
-    
+    const [comment,setComment] = useState(eventDVMap[constants.de_comment]?eventDVMap[constants.de_comment].value:undefined);
     const identifiedLevel = eventDVMap[constants.de_identified_level];
     
     var message = "";
@@ -104,6 +104,7 @@ Are you sure you want to continue?
             saveOrUpdateDV(constants.de_recepeints,userData.names.join(","));
             saveOrUpdateDV(constants.de_sent_message,message);
             saveOrUpdateDV(constants.de_sent_json,JSON.stringify(sentReceipts));
+            saveOrUpdateDV(constants.de_comment,comment);
 
             event.status = "COMPLETED";
             saveEvent(function(error,response,body){
@@ -155,6 +156,8 @@ Are you sure you want to continue?
 
         setLoader(true);
         saveOrUpdateDV(constants.de_sms_sent_status,"CLOSED");
+        saveOrUpdateDV(constants.de_comment,comment);
+
         event.status = "COMPLETED";
         saveEvent(function(error,response,body){
             var eventSaveStatus = getEventSaveResponseString(error,response,body);
@@ -169,6 +172,8 @@ Are you sure you want to continue?
         setLoader(true);
         saveOrUpdateDV(constants.de_sms_sent_status,"CLOSED");
         saveOrUpdateDV(constants.de_message_type,"spam");
+        saveOrUpdateDV(constants.de_comment,comment);
+
         event.status = "COMPLETED";
         saveEvent(function(error,response,body){
             var eventSaveStatus = getEventSaveResponseString(error,response,body);
@@ -232,6 +237,10 @@ To ${getSentReceiptsStatus(eventDVMap[constants.de_sent_json])}`;
     function onRowClick(){
         setExpand(!expand);
     }
+
+    function onCommentChange(e){
+        setComment(e.target.value);
+    }
     
     function getButtonClass(type){
 
@@ -260,15 +269,14 @@ To ${getSentReceiptsStatus(eventDVMap[constants.de_sent_json])}`;
         return ""
     }
     
-    return <tbody><tr onClick={onRowClick} key={"tr_"+event.event}>
+    return <tbody><tr  key={"tr_"+event.event}>
         <td key={"tr_ou_"+event.event}>{event.orgUnitName}</td>
         <td key={"tr_date_"+event.event}>{moment(event.eventDate).format("YYYY-MM-DD")}</td>
         <td key={"tr_id_level_"+event.event}>{eventDVMap[constants.de_identified_level]?eventDVMap[constants.de_identified_level].value:"-"}</td>
         <td key={"tr_sms_"+event.event}>{eventDVMap[constants.de_sms_content]?eventDVMap[constants.de_sms_content].value:"NULL"}</td>
-        <td key={"tr_action_"+event.event}>
-        <input id="verifyButton" className={getButtonClass('verify')} type="button" value="Verify" onClick={verify}></input>
-        <img className = {!expand?"" : "hidden"} src="./images/expand.png" alt="loader.." height="32" width="32"></img> 
-        <img className = { expand?"" : "hidden"} src="./images/collapse.png" alt="loader.." height="32" width="32"></img> 
+        <td key={"tr_action_"+event.event} onClick={onRowClick}>
+        <img className = {!expand?"" : "hidden"} src="./images/expand.png" alt="loader.." height="18" width="18"></img> 
+        <img className = { expand?"" : "hidden"} src="./images/collapse.png" alt="loader.." height="18" width="18"></img> 
 
         </td>
         <td>
@@ -282,18 +290,27 @@ To ${getSentReceiptsStatus(eventDVMap[constants.de_sent_json])}`;
 
     </tr>
         <tr className={expand?"":"hidden"}>
-        <td></td>
         <td colSpan="3">
-        Comment : <input type="textarea" value="" />
+      
+        <textarea placeholder="Enter Comment..." rows="5" cols="45" value={comment} onChange={onCommentChange} />
         </td>
-         <td>
-        Receipeints : {}
-        <ul>
+      
+        
+        <td colSpan="2">
+        <ul>Receipeints
         <li>asasd</li>
         </ul>
-    </td>
+        </td>
+        <td colSpan="1">
+        Final Message
+        </td>
+    
+        <td colSpan="1">
+        <input id="verifyButton" className={getButtonClass('verify')} type="button" value="Verify" onClick={verify}></input>
+             
+        </td>
         </tr>
-     
+        
         </tbody>
         
 }
