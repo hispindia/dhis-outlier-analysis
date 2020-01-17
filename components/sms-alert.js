@@ -1,4 +1,4 @@
-import React,{useState} from 'react';
+import React,{useState,useEffect} from 'react';
 import api from 'dhis2api';
 import constants from '../constants';
 import sms from '../SMS';
@@ -15,10 +15,32 @@ export function SMSAlert(props){
         return map;
     },[]);
 
-    const [sentReceipt,setSentReceipt] = useState(getSentStatusDescription());
+    const [sentReceipt,setSentReceipt] = useState(function(){
+
+        if (!eventDVMap[constants.de_sms_sent_status]){
+            return "";
+        }else if( eventDVMap[constants.de_sms_sent_status].value!='SENT'){
+            return eventDVMap[constants.de_sms_sent_status].value;
+        }
+        
+        if (!eventDVMap[constants.de_sent_json]){
+            return "";
+        }
+        
+        try{
+            var smsRes = parseSMSResponse(JSON.parse(eventDVMap[constants.de_sent_json]));
+            return smsres.receipts;
+        }catch(e){
+            return ""
+        }
+        
+    });
     const [loader,setLoader] = useState(false);
     const [expand,setExpand] = useState(false);
     const [comment,setComment] = useState(eventDVMap[constants.de_comment]?eventDVMap[constants.de_comment].value:undefined);
+    const [finalMessage,setFinalMessage] = useState("");
+    const [recipients,setRecipients] = useState("");
+    
     const identifiedLevel = eventDVMap[constants.de_identified_level];
     
     var message = "";
@@ -34,13 +56,10 @@ export function SMSAlert(props){
         var defaultUserGroup = props.userGroupMap[constants.user_group_default_level_code];
 
         if (!identifiedLevel){
-            alert("Level Not Recognized");
+          //  alert("Level Not Recognized");
             return
         }
-        
-        message = `${identifiedLevel.value} received \
-from ${event.orgUnitName} \
-on ${moment(event.eventDate).format("YYYY-MM-DD") }`
+    
         var levelUserGroup = props.userGroupMap[identifiedLevel.value] 
 
         if (!defaultUserGroup &&
@@ -87,32 +106,50 @@ on ${moment(event.eventDate).format("YYYY-MM-DD") }`
             return data;
         },{names : [], phones : []});
         
-        if (confirm(`Following users will be notified through SMS : ${userData.names.join(",")} \n
-Are you sure you want to continue?
-`)){
+        if (confirm(`Are you sure you want to continue?`)){
             setLoader(true);
-            SMS.send("[TEST]"+message,users,postSendSMS)
+            SMS.sendBulk("[TEST]"+finalMessage,users,postSendSMS)
         }        
-
-        function postSendSMS(sentReceipts){
-            if (!sentReceipts){
-                alert("An unexpected error occurred");
-                return;
+        
+        function postSendSMS(error,response,body){
+            
+            if (error){
+                setSentReceipt("Error with SMS Service");
+                setLoader(false);
+                setExpand(false)
+                return
             }
 
+            if (body.error){
+                setSentReceipt("Error while Sending SMS:"+body.response);
+                setLoader(false);
+                setExpand(false)
+                return
+            }
+
+            var smsResponseParsed = parseSMSResponse(body);
+            if (smsResponseParsed.error){
+                debugger
+                setSentReceipt("Error while Sending SMS :"+smsResponseParsed.receipts);
+                setLoader(false);
+                setExpand(false)
+                return
+            }
+            
             saveOrUpdateDV(constants.de_sms_sent_status,"SENT");
             saveOrUpdateDV(constants.de_recepeints,userData.names.join(","));
-            saveOrUpdateDV(constants.de_sent_message,message);
-            saveOrUpdateDV(constants.de_sent_json,JSON.stringify(sentReceipts));
+            saveOrUpdateDV(constants.de_sent_message,finalMessage);
+            saveOrUpdateDV(constants.de_sent_json,JSON.stringify(body));
             saveOrUpdateDV(constants.de_comment,comment);
 
             event.status = "COMPLETED";
-            saveEvent(function(error,response,body){
+            saveEvent((error,response,body) => {
                 
                 var eventSaveStatus = getEventSaveResponseString(error,response,body);
                
-                setSentReceipt(`${getSentStatusDescription()}. Event:${eventSaveStatus}`);
+                setSentReceipt(`${smsResponseParsed.receipts} ${eventSaveStatus}`);
                 setLoader(false);
+                setExpand(false)
                 
             })
             
@@ -122,9 +159,16 @@ Are you sure you want to continue?
     function getEventSaveResponseString(error,response,body){
         if (error){
             return  "Error"
-        }else{
-            return `[ httpStatus:${body.httpStatus} ,${JSON.stringify(body.response.importCount)} ]`
         }
+
+        try{
+            if (body.response.importCount.updated=="1" || body.response.importCount.imported=="1"){
+                return "";
+            }
+        }catch(e){
+            return "Error_"
+        }
+                    
     }
     
     
@@ -163,14 +207,14 @@ Are you sure you want to continue?
             var eventSaveStatus = getEventSaveResponseString(error,response,body);
 
             setLoader(false);
-            setSentReceipt("Closed."+eventSaveStatus);
+            setSentReceipt("CLOSED"+eventSaveStatus);
             
         })
     }
 
     function spam(){
         setLoader(true);
-        saveOrUpdateDV(constants.de_sms_sent_status,"CLOSED");
+        saveOrUpdateDV(constants.de_sms_sent_status,"CLOSED-SPAM");
         saveOrUpdateDV(constants.de_message_type,"spam");
         saveOrUpdateDV(constants.de_comment,comment);
 
@@ -179,7 +223,7 @@ Are you sure you want to continue?
             var eventSaveStatus = getEventSaveResponseString(error,response,body);
 
             setLoader(false);
-            setSentReceipt("Closed and Marked as Spam."+eventSaveStatus);
+            setSentReceipt("CLOSED-SPAM"+eventSaveStatus);
             
         })
     }
@@ -189,19 +233,51 @@ Are you sure you want to continue?
         apiWrapper.putObj("events/"+event.event,event,callback)
     }
 
-    function getSentStatusDescription(){
+    function parseSMSResponse(data){
+        var res = {
+            error : true,
+            message : "",
+            receipts:null 
+        }
+
+        if (!data.response){
+            res.message= "SMS Response Not valid";
+        }
+
+            
+        res.receipts = data.response.SMSMessageData.Recipients.reduce(function(list,obj){
+            if (obj.statusCode!=101){
+                res.error=true;
+            }
+            list.push(`XXXXX${obj.number.substring(5,8)} ( ${obj.status})`);
+            
+            return list;
+        },[]);
+        
+        return res;
+    }
+    
+    function getSentStatusDescription(callback){
+
+        if (!eventDVMap[constants.de_sms_sent_status]){
+            return "";
+        }else if( eventDVMap[constants.de_sms_sent_status].value!='SENT'){
+            return eventDVMap[constants.de_sms_sent_status].value;
+        }
         
         if (!eventDVMap[constants.de_sent_json]){
             return "";
         }
-        
-        var str = `Sent [ ${eventDVMap[constants.de_sent_message].value} ] \
-To ${getSentReceiptsStatus(eventDVMap[constants.de_sent_json])}`;
+
+        var smsResponse = getSentReceiptsStatus(eventDVMap[constants.de_sent_json]);
+        var str = (smsResponse.error?"ERROR":"SENT")+`--  ${eventDVMap[constants.de_sent_message]?eventDVMap[constants.de_sent_message].value:undefined}  \
+  TO--   ${smsResponse.receipts}`;
 
         return str;
 
         function getSentReceiptsStatus(data){
 
+            var error = false;
             if (!data){
                 return "No Sent SMS Data Found";
             }
@@ -211,35 +287,63 @@ To ${getSentReceiptsStatus(eventDVMap[constants.de_sent_json])}`;
             }catch(e){
                 return "Sent  Data not JSON parsed"
             }
-            
-            var receipts = data.reduce(function(receipts,obj){
-                var str = ""
-                if (obj.error){
-                    str=`User[${obj.user.name}] Error While sending SMS`;
-                }else{
-                    var msg="";
-                    try{
-                        msg = obj.response.message.SMSMessageData.Recipients[0].status;
-                    }catch(e){
-                        msg = "Error while parsing api response";
-                    }
-                    str = `[ ${obj.user.name}[ ${msg} ]]`;
-                }
-                
-                receipts.push(str);                      
-                return receipts;
-            },[])
 
-            return receipts.join(" , ");
+            if (!data.response){
+                
+                return 
+            }
+
+            
+            var receipts = data.response.SMSMessageData.Recipients.reduce(function(list,obj){
+                if (obj.statusCode!=101){
+                    error=true;
+                }
+                list.push(`XXXXX${obj.number.substring(5,8)} ( ${obj.status})`);
+                
+                return list;
+            },[])
+   
+            return {receipts: receipts.join(" , "),error:error};
         }
     }
 
     function onRowClick(){
         setExpand(!expand);
+
+        var users = getUsers();
+        if (!users || users.length==0){
+            setRecipients(null);
+            
+            return;
+        }
+        
+        setRecipients( users.reduce(function(data,obj,index){
+            data.push(<li>{obj.name}
+                      (  {obj.phoneNumber?"....."+obj.phoneNumber.substring(5,8):"NA"} )
+                      </li>)
+            return data;
+        },[]));
+        
+        setSMSString();
+
     }
 
+    function setSMSString(){
+        setFinalMessage(`${identifiedLevel?identifiedLevel.value:""} received \
+from ${event.orgUnitName} \
+on ${moment(event.eventDate).format("YYYY-MM-DD") }.
+${comment?comment:""}`);
+
+    }
+
+    useEffect(() => {
+        setSMSString();
+    },[comment]);
+    
     function onCommentChange(e){
         setComment(e.target.value);
+       
+
     }
     
     function getButtonClass(type){
@@ -250,7 +354,7 @@ To ${getSentReceiptsStatus(eventDVMap[constants.de_sent_json])}`;
         
         switch (type){
         case 'verify':
-            if (!sentReceipt){
+            if (!sentReceipt && recipients){
                 return ""
             }else {
                 return "hidden"
@@ -264,6 +368,12 @@ To ${getSentReceiptsStatus(eventDVMap[constants.de_sent_json])}`;
                 return "hidden"
             }
             break;
+        case 'resend':
+            if(sentReceipt){
+                return ""
+            }else{
+                return "hidden"
+            }
         }
         
         return ""
@@ -292,22 +402,23 @@ To ${getSentReceiptsStatus(eventDVMap[constants.de_sent_json])}`;
         <tr className={expand?"":"hidden"}>
         <td colSpan="3">
       
-        <textarea placeholder="Enter Comment..." rows="5" cols="45" value={comment} onChange={onCommentChange} />
+        <textarea placeholder="Enter Comment..." rows="7" cols="30" value={comment} onChange={onCommentChange} />
         </td>
       
         
         <td colSpan="2">
-        <ul>Receipeints
-        <li>asasd</li>
+        <h4>Recipients</h4>
+        <ul>
+        {recipients?recipients:"No Users Found!"}
         </ul>
         </td>
         <td colSpan="1">
-        Final Message
-        </td>
+        {recipients?finalMessage:""}
+    </td>
     
         <td colSpan="1">
         <input id="verifyButton" className={getButtonClass('verify')} type="button" value="Verify" onClick={verify}></input>
-             
+        <input id="resendButton" className={getButtonClass('resend')} type="button" value="Resend" onClick={verify}></input>  
         </td>
         </tr>
         

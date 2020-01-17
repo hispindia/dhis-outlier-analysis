@@ -56,7 +56,7 @@ export function WatchPanel(props){
 &paging=false\
 &order=eventDate:DESC
 &${messageTypeFilter}`,
-                          function(error,response,body){
+                          (error,response,body)=>{
                               if (error){
                                   alert("An unexpected Error occurred"+JSON.stringify(error));
                                   callback();
@@ -64,11 +64,10 @@ export function WatchPanel(props){
                               }
                               
                               var events = body.events;
-
+                              
                               if (events.length==0){
                                   setAlertMessages(<tr><td>No Data Found</td></tr>);
                                   callback();
-
                                   return;
                               }
                               
@@ -76,6 +75,7 @@ export function WatchPanel(props){
                                   list.push(<SMSAlert key={"SMSAlert_"+obj.event} event={obj} userGroupMap={userGroupMap}  />);
                                   return list;
                               },[]);
+                              
                               setAlertMessages(alerts);
                               callback();
                           });
@@ -87,7 +87,7 @@ export function WatchPanel(props){
     }
     
     useEffect(function(){
-        getEvents(props.data.me.organisationUnits[0].id)
+        getEvents(()=>{})
     },[]);
     
     function fetchMessages(ou,program){
@@ -174,7 +174,7 @@ export function WatchPanel(props){
     </tr>
         </thead>
         {alertMessages}
-        </table>
+    </table>
         </div>
         
 }

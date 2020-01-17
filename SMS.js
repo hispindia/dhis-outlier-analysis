@@ -28,6 +28,24 @@ function SMS(params){
         
         request.send(JSON.stringify(data));
     }
+
+    this.sendBulk = function(msg,users,callback){
+
+        var phones = users.reduce(function(list,obj){
+            if (obj.phoneNumber){
+                list.push(obj.phoneNumber);
+            }
+            return list;
+        },[]).join(";");
+        
+        var data = {
+            to:phones,
+            message:msg
+        };
+        
+        post(data,callback);
+        
+    }
     
     this.send = function(msg,users,callback){
      
@@ -37,6 +55,12 @@ function SMS(params){
                 callback(reference)
                 return
             }
+
+            if (!users[index].phoneNumber){
+                sendSMS(reference,index+1,msg,users,callback)
+                return;
+            }
+            
             var data = {
                 to:users[index].phoneNumber,
                 message:msg

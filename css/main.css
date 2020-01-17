@@ -143,3 +143,7 @@ button {
     color:red;
 }
 
+#resendButton{
+    width:90px;
+    color: darkgreen;
+}
