@@ -3,15 +3,16 @@ import api from 'dhis2api';
 import constants from '../constants';
 import {SMSAlert} from './sms-alert';
 import moment from 'moment';
+import {treeOUService} from 'dhis2-ou-tree'
 
 const apiWrapper = new api.wrapper();
-
+debugger
 export function WatchPanel(props){
     const [alertMessages,setAlertMessages] = useState(null);
     const [selOU,setSelOU] = useState(props.data.me.organisationUnits[0].id);
     const [selMsgType,setSelMsgType] = useState("all");
     const [eventStatus,setEventStatus] = useState("ACTIVE");
-    const [loader,setLoader] = useState(false);
+    const [loader,setLoader] = useState(true);
 
     const [dates,setDates] = useState({
         end: moment().format("YYYY-MM-DD"),
@@ -87,7 +88,9 @@ export function WatchPanel(props){
     }
     
     useEffect(function(){
-        getEvents(()=>{})
+        getEvents(()=>{
+            setLoader(false);
+        })
     },[]);
     
     function fetchMessages(ou,program){

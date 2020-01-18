@@ -1,5 +1,5 @@
 {
-  "name": "react-skeleton",
+  "name": "SMSPanel",
   "version": "1.0.1",
   "description": "",
   "main": "index.js",
@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/harsh-a1/react-skeleton#readme",
   "dependencies": {
+    "dhis2-ou-tree": "^2.1.10",
     "dhis2api": "^1.1.3",
     "moment": "^2.24.0",
     "react": "^16.2.0",

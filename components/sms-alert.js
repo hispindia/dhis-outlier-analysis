@@ -353,27 +353,30 @@ ${comment?comment:""}`);
         }
         
         switch (type){
+            
         case 'verify':
-            if (!sentReceipt && recipients){
-                return ""
-            }else {
+            
+            if ( event.status=="COMPLETED"){
                 return "hidden"
             }
+
+            return ""
             break;
         case 'cancel':
         case 'spam':
-            if (!sentReceipt){
-                return ""
-            }else {
+            if (event.status == "COMPLETED"){
                 return "hidden"
+            }else {
+                return ""
             }
             break;
         case 'resend':
-            if(sentReceipt){
+            if( event.status=="COMPLETED"){
                 return ""
-            }else{
-                return "hidden"
             }
+            return "hidden"
+            break;
+            
         }
         
         return ""
@@ -413,6 +416,7 @@ ${comment?comment:""}`);
         </ul>
         </td>
         <td colSpan="1">
+        <h4>SMS Preview</h4>
         {recipients?finalMessage:""}
     </td>
     

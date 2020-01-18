@@ -1,0 +1,84 @@
+/*----------------------------------------------------------------------------*/
+/* Organisation Unit Web Tree                                                 */
+/*----------------------------------------------------------------------------*/
+
+
+#treeComponent 
+{
+  font-size: 11pt;
+  background-color: white;
+  overflow: auto;
+  width: 300px;
+  height: 485.41px;
+  border-top: 3px solid #e3e3e3;
+  border-bottom: 1px solid #e3e3e3;
+  border-left: 2px solid #e3e3e3;
+  font-family: LiberationSans, arial, sans-serif;
+  line-height: 140%;
+  display:inline-block;
+}
+
+#treeComponent ul 
+{
+  list-style-type:none;
+  margin: 0;
+  padding: 0;
+}
+
+#treeComponent ul li:last-child {
+  background-position: 0pt -1766px;
+}
+
+#treeComponent li 
+{
+  list-style-type: none;
+  white-space: nowrap;
+  margin-top: 0;
+  padding: 0 0 1px 15px;
+  background-color: transparent;
+  background-image: url('../images/treeview-gray-line.gif');
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  background-position: 0pt 0pt;
+}
+
+#treeComponent span.toggle 
+{
+  margin-left: -13px;;
+  cursor: pointer;
+}
+
+#treeComponent a 
+{
+  display: inline;
+  border: 0;
+  padding: 0;
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+  margin-left:1%;
+  margin-top:1%;
+}
+
+#treeComponent a:hover 
+{
+  color: #555;
+  background-color: #fff;
+}
+
+#treeComponent a.selected 
+{
+  color: orange !important;
+  font-weight: bold;
+}
+
+.show {
+    display : block;   
+}
+
+.hide {
+    display: none;
+    margin-top: 110;
+
+    
+}

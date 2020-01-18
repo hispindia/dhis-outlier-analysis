@@ -5,7 +5,7 @@ import constants from './constants';
 import {SelectionPanel} from './components/selection-panel';
 import {WatchPanel} from './components/watch-panel';
 
-import {TreeComponent} from './lib/ous'
+import {TreeComponent} from 'dhis2-ou-tree'
 import api from 'dhis2api';
 
 
@@ -25,10 +25,10 @@ window.onload = function(){
 
 
     var select = {}
-    select.selected = function(callback){
+  /*  select.selected = function(callback){
         debugger
     }
-      
+    */  debugger
     ReactDOM.render(<TreeComponent  onSelectCallback={select}/>, document.getElementById('treeComponent'));
 
     var apiWrapper = new api.wrapper();
