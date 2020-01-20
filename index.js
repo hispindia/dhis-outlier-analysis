@@ -28,7 +28,7 @@ window.onload = function(){
   /*  select.selected = function(callback){
         debugger
     }
-    */  debugger
+    */  
     ReactDOM.render(<TreeComponent  onSelectCallback={select}/>, document.getElementById('treeComponent'));
 
     var apiWrapper = new api.wrapper();
@@ -39,10 +39,10 @@ window.onload = function(){
 
     var Puser = apiWrapper.getObj(`me`);
     var PuserGroups = apiWrapper.getObj(`userGroups?fields=id,name,code,users[id,name,phoneNumber]&paging=false`);
-    
+    var PoptionsIdentifiedLevels = apiWrapper.getObj(`optionSets/Tl4QLYO23Ur?fields=id,name,options[id,name,code]`)
     //var PouGroups = ouService.getOUGroups("id,name");
 
-    Promise.all([Pprogram,Puser,PuserGroups]).then(function(values){
+    Promise.all([Pprogram,Puser,PuserGroups,PoptionsIdentifiedLevels]).then(function(values){
 
         var program = values[0];
 
@@ -50,7 +50,8 @@ window.onload = function(){
             {
                 program : values[0],
                 me : values[1],
-                userGroups: values[2].userGroups
+                userGroups: values[2].userGroups,
+                identifiedLevelOptions : values[3].options
             }
         }  services = {
             {

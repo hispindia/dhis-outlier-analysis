@@ -3,10 +3,9 @@ import api from 'dhis2api';
 import constants from '../constants';
 import {SMSAlert} from './sms-alert';
 import moment from 'moment';
-import {treeOUService} from 'dhis2-ou-tree'
 
 const apiWrapper = new api.wrapper();
-debugger
+
 export function WatchPanel(props){
     const [alertMessages,setAlertMessages] = useState(null);
     const [selOU,setSelOU] = useState(props.data.me.organisationUnits[0].id);
@@ -25,6 +24,12 @@ export function WatchPanel(props){
         return map;
     },[]);
 
+    const identifiedLevelsOptionMap = props.data.identifiedLevelOptions.reduce(function(map,obj){
+        if (obj.code)
+            map[obj.code]=obj;
+        return map;
+    },[]);
+    
     function getFilters(){
         var filters = [];
 
@@ -73,7 +78,10 @@ export function WatchPanel(props){
                               }
                               
                               var alerts = events.reduce(function(list,obj){
-                                  list.push(<SMSAlert key={"SMSAlert_"+obj.event} event={obj} userGroupMap={userGroupMap}  />);
+                                  list.push(<SMSAlert key={"SMSAlert_"+obj.event}
+                                            event={obj}
+                                            userGroupMap={userGroupMap}
+                                            identifiedLevelsOptionMap = {identifiedLevelsOptionMap} />);
                                   return list;
                               },[]);
                               

@@ -22,7 +22,7 @@
 .report td,th{
     border: 1px solid #ddd;
     padding: 8px;
-    min-width:100px;
+    min-width:50px;
     text-align: center;
     word-wrap: break-word;
 }
@@ -38,6 +38,10 @@
     background-color: #3397B2;
     color: white;
     min-width:100px;
+}
+
+.smallColumn{
+    width:40px;
 }
 
 .verifyPanelDiv{

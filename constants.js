@@ -11,8 +11,9 @@ exports.de_sent_json="zdc9Xu2tyuO"
 exports.user_group_default_level_code = "defaultLevel";
 
 exports.africas_talking_params = {
-    url : "http://localhost:8010/sendSMS",
-    apiKey : "1aba805e0ccbabe8dcb9c55b45af56c06ddb404db6469ee16cbbb73dcc9247ef",
+    url : "http://172.105.47.158/ict4cop_kenya_send_sms/",
+ //   url : "http://localhost:8010/sendSMS",
+    apiKey : "1aba805e0ccbabe8dcb9c",
     username : "",
     shortcode : ""
 }

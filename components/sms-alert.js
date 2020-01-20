@@ -3,6 +3,7 @@ import api from 'dhis2api';
 import constants from '../constants';
 import sms from '../SMS';
 import moment from 'moment';
+import {treeOUService} from 'dhis2-ou-tree'
 
 const apiWrapper = new api.wrapper();
 const SMS = new sms(constants.africas_talking_params);
@@ -235,7 +236,7 @@ export function SMSAlert(props){
 
     function parseSMSResponse(data){
         var res = {
-            error : true,
+            error : false,
             message : "",
             receipts:null 
         }
@@ -381,11 +382,36 @@ ${comment?comment:""}`);
         
         return ""
     }
+
+    function getIdentifiedLevel(){
+        
+        var level = eventDVMap[constants.de_identified_level];
+        if (level && level.value){
+            if (props.identifiedLevelsOptionMap[level.value]){
+                return props.identifiedLevelsOptionMap[level.value].name;
+            }else{
+                return "Level not Mapped. Please contact admin."
+            }
+        }
+
+        return "-"
+    }
+
+    function getOrgUnitPath(uid){
+        var ou = treeOUService.getOrgUnitFromUID(uid);
+        var path = ou.name;
+        while(ou.parent && ou.level>2){
+            path=ou.parent.name+" / "+path;
+            ou=ou.parent;
+        }
+        
+        return path;
+    }
     
     return <tbody><tr  key={"tr_"+event.event}>
-        <td key={"tr_ou_"+event.event}>{event.orgUnitName}</td>
+        <td key={"tr_ou_"+event.event}>{getOrgUnitPath(event.orgUnit)}</td>
         <td key={"tr_date_"+event.event}>{moment(event.eventDate).format("YYYY-MM-DD")}</td>
-        <td key={"tr_id_level_"+event.event}>{eventDVMap[constants.de_identified_level]?eventDVMap[constants.de_identified_level].value:"-"}</td>
+        <td key={"tr_id_level_"+event.event}>{getIdentifiedLevel()}</td>
         <td key={"tr_sms_"+event.event}>{eventDVMap[constants.de_sms_content]?eventDVMap[constants.de_sms_content].value:"NULL"}</td>
         <td key={"tr_action_"+event.event} onClick={onRowClick}>
         <img className = {!expand?"" : "hidden"} src="./images/expand.png" alt="loader.." height="18" width="18"></img> 
