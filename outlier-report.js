@@ -53,7 +53,7 @@ function outlierReport(param,
 	        max(ou3.name) Division, max(ou3.organisationunitid) as Division_Uphmis_Id ,
 	        max(ou4.name) District, max(ou4.code) as District_Hmis_Code, max(ou4.organisationunitid) as District_Uphmis_Id, 
 	        max(ou5.name) Block, max(ou5.code) as Block_Hmis_Code, max(ou5.organisationunitid) as Block_Uphmis_Id,
-	        max(ou6.name) Facility, max(ou6.code) as Facility_Hmis_Code,max(ou6.organisationunitid) as Facility_Uphmis_Id
+	        max(ou6.name) Facility, max(ou6.comment) as F_Type,max(ou6.code) as Facility_Hmis_Code,max(ou6.organisationunitid) as Facility_Uphmis_Id
 	        from _orgunitstructure ous
 	        inner join organisationunit ou on ou.organisationunitid = ous.organisationunitid
 	        left join organisationunit ou1 on ou1.organisationunitid = ous.idlevel1
@@ -69,7 +69,7 @@ function outlierReport(param,
 	Division, Division_Uphmis_Id ,
 	District, District_Hmis_Code, District_Uphmis_Id, 
 	Block, Block_Hmis_Code, Block_Uphmis_Id,
-	Facility, Facility_Hmis_Code,Facility_Uphmis_Id,
+	Facility,F_Type, Facility_Hmis_Code,Facility_Uphmis_Id,
 	max(ou.name) as outlierfacility,
 	max(de.name) as dataelement,
 	max(coc.name) as category,
@@ -105,8 +105,9 @@ function outlierReport(param,
                             where ous.uidlevel${selectedOULevel} = '${selectedOUUID}'
                             and organisationunitid in (select sourceid
 		                                       from datasetsource dss
-		                                       inner join dataset ds on ds.datasetid = dss.datasetid
-  				                       where ds.uid in (${dsUIDs})
+		                                         inner join dataset ds on ds.datasetid = dss.datasetid
+		                                       inner join organisationunit oup on dss.sourceid=oup.organisationunitid
+  				                       where ds.uid in (${dsUIDs}) and oup.comment like '%Public%'
                                                       )                  
                             )
 		and dv.periodid in (
@@ -141,7 +142,7 @@ function outlierReport(param,
 	Division, Division_Uphmis_Id ,
 	District, District_Hmis_Code, District_Uphmis_Id, 
 	Block, Block_Hmis_Code, Block_Uphmis_Id,
-	Facility, Facility_Hmis_Code,Facility_Uphmis_Id,
+	Facility,F_Type, Facility_Hmis_Code,Facility_Uphmis_Id,
 	_dv.dataelementid,_dv.sourceid,_dv.categoryoptioncomboid,_dv.attributeoptioncomboid,_dv.periodid,_dv.value,u,l,mean,std  -- , sum,count, vals
         order by country,state,division,district,block,facility,dataelement,category`
 
