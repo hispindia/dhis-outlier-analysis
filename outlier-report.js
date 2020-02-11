@@ -53,7 +53,8 @@ function outlierReport(param,
 	        max(ou3.name) Division, max(ou3.organisationunitid) as Division_Uphmis_Id ,
 	        max(ou4.name) District, max(ou4.code) as District_Hmis_Code, max(ou4.organisationunitid) as District_Uphmis_Id, 
 	        max(ou5.name) Block, max(ou5.code) as Block_Hmis_Code, max(ou5.organisationunitid) as Block_Uphmis_Id,
-	        max(ou6.name) Facility, max(ou6.comment) as F_Type,max(ou6.code) as Facility_Hmis_Code,max(ou6.organisationunitid) as Facility_Uphmis_Id
+	        max(ou6.name) Facility, max(SUBSTRING(ou6.comment FROM
+             position(':' in ou6.comment) + 1 )) as F_Type,max(ou6.code) as Facility_Hmis_Code,max(ou6.organisationunitid) as Facility_Uphmis_Id
 	        from _orgunitstructure ous
 	        inner join organisationunit ou on ou.organisationunitid = ous.organisationunitid
 	        left join organisationunit ou1 on ou1.organisationunitid = ous.idlevel1
