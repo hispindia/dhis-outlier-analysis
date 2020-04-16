@@ -18,6 +18,12 @@ User should be able to analyze the number of outliers that have been reported in
 The analysis should be available to be done on historic data upon any facility/s which are in the jurisdiction of the user/analyst. 
 The analysis should have sufficient information to figure out the exact facility , time period and data point of the outlier found and the min and max values of such cases.
 
-Build
+Commands:
+
+To install node files in outlier-analysis run this command
+
 npm install 
+
+Then run this command to build code and generate bundle.js
+
 webpack
