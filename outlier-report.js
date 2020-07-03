@@ -99,7 +99,7 @@ function outlierReport(param,
 					from dataelement de
 					inner join datasetelement dsm on dsm.dataelementid = de.dataelementid
 					inner join dataset ds on ds.datasetid = dsm.datasetid	
-        				where ds.uid in (${dsUIDs}) and de.valueType in ('NUMBER','INTEGER')
+        				where ds.uid in (${dsUIDs}) and de.valueType in ('NUMBER','INTEGER','INTEGER_ZERO_OR_POSITIVE')
 					)  
                 and dv.sourceid in (select organisationunitid 
                             from _orgunitstructure ous 		
