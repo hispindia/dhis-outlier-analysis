@@ -22,7 +22,7 @@
     "react": "^16.2.0",
     "react-dom": "^16.2.0",
     "webpack": "^4.33.0",
-    "xlsx": "^0.14.3",
+    "xlsx": "^0.17.0",
     "xlsx-populate": "^1.14.0"
   },
   "devDependencies": {
